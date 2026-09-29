@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRightLeft, Calendar, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowRightLeft, Calendar, Kanban, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { useCompanyStore } from "@/data/companyStore";
 import { useDealStore, STAGES, DEAL_APP_TYPES, formatMoney, toPLN, type Deal, type Stage, type DealAppType } from "@/data/dealStore";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,10 @@ function Page() {
         </div>
         <Button onClick={() => openAdd()}><Plus className="mr-1 h-4 w-4" />Nowa Szansa Sprzedaży</Button>
       </div>
+
+      {ds.ready && ds.deals.length === 0 && (
+        <EmptyState icon={Kanban} title="Brak szans w lejku" text="Dodaj pierwszą szansę sprzedaży lub zaimportuj leady ze Skanera Leadów." action={<Button onClick={() => openAdd()}><Plus className="mr-1 h-4 w-4" />Nowa Szansa Sprzedaży</Button>} />
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Card className="p-4">

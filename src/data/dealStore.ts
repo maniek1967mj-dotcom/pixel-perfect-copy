@@ -33,14 +33,9 @@ export const toPLN = (d: Deal) => (d.currency === "EUR" ? d.value * EUR_TO_PLN :
 export const formatMoney = (v: number, cur = "PLN") =>
   `${new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 0 }).format(v)} ${cur}`;
 
-const KEY = "crm.deals.v1";
+const KEY = "crm.deals.v2";
 const now = () => new Date().toISOString();
-const seed: Deal[] = [
-  { id: "d1", title: "Wdrożenie Fabryka Smart - Hala Główna", company_id: "c1", contact_id: "p1", stage: "audyt_gemba", value: 150000, currency: "PLN", app_type: "Fabryka Smart", expected_close_date: "2026-11-30", notes: "Audyt Gemba zaplanowany na hali CNC.", created_at: now() },
-  { id: "d2", title: "Monitoring linii spawalniczej", company_id: "c2", contact_id: "p3", stage: "propozycja", value: 280000, currency: "PLN", app_type: "Fabryka Smart", expected_close_date: "2026-12-15", notes: "Oferta dla linii Panasonic + malarnia.", created_at: now() },
-  { id: "d3", title: "Asystent Restauracji - 8 lokali", company_id: "c3", contact_id: "p5", stage: "negocjacje", value: 45000, currency: "PLN", app_type: "Asystent Restauracji", expected_close_date: "2026-10-31", created_at: now() },
-  { id: "d4", title: "CRM dla działu integracji", company_id: "c4", contact_id: "p6", stage: "kontakt", value: 12000, currency: "EUR", app_type: "CRM", expected_close_date: "2027-01-20", created_at: now() },
-];
+const seed: Deal[] = [];
 
 export function readDeals(): Deal[] {
   try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw) as Deal[]; } catch { /* ignore */ }
