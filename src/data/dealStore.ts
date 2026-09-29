@@ -42,6 +42,13 @@ const seed: Deal[] = [
   { id: "d4", title: "CRM dla działu integracji", company_id: "c4", contact_id: "p6", stage: "kontakt", value: 12000, currency: "EUR", app_type: "CRM", expected_close_date: "2027-01-20", created_at: now() },
 ];
 
+export function readDeals(): Deal[] {
+  try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw) as Deal[]; } catch { /* ignore */ }
+  localStorage.setItem(KEY, JSON.stringify(seed));
+  return seed;
+}
+export const writeDeals = (v: Deal[]) => localStorage.setItem(KEY, JSON.stringify(v));
+
 export function useDealStore() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [ready, setReady] = useState(false);

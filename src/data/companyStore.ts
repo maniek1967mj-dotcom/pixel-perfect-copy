@@ -33,6 +33,11 @@ function load<T>(key: string, seed: T[]): T[] {
   return seed;
 }
 
+export const readCompanies = () => load(C_KEY, seedCompanies);
+export const readContacts = () => load(P_KEY, seedContacts);
+export const writeCompanies = (v: Company[]) => localStorage.setItem(C_KEY, JSON.stringify(v));
+export const writeContacts = (v: Contact[]) => localStorage.setItem(P_KEY, JSON.stringify(v));
+
 export const SIZES = ["1-10 osób", "11-50 osób", "51-200 osób", "200+ osób"];
 export const ALL_POTENTIALS: AppPotential[] = ["Fabryka Smart", "Asystent Restauracji", "CRM", "Inne"];
 
