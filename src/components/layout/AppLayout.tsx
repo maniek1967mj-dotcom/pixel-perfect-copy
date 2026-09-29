@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Bell, Building2, CheckSquare, Factory, Kanban, LayoutDashboard, Menu, Search, Users, X , ScanSearch, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { InstallAppButton } from "./InstallAppButton";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -19,14 +20,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-muted">
       {open && <div className="fixed inset-0 z-30 bg-foreground/40 lg:hidden" onClick={() => setOpen(false)} />}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-sidebar-foreground transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`no-select flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-sidebar-foreground transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
           <div className="flex items-center gap-2 font-bold">
-            <Factory className="h-6 w-6 text-sidebar-primary" /> B2B CRM
+            <Factory className="h-6 w-6 text-sidebar-primary" /> Smart CRM
           </div>
           <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="Zamknij menu"><X className="h-5 w-5" /></button>
         </div>
-        <nav className="space-y-1 p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {nav.map(({ to, label, icon: Icon }) => (
             <Link key={to} to={to} onClick={() => setOpen(false)} activeOptions={{ exact: to === "/" }}
               className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent"
@@ -35,9 +36,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
+        <div className="p-3"><InstallAppButton /></div>
       </aside>
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-4 lg:px-6">
+        <header className="no-select sticky top-0 pt-[env(safe-area-inset-top)] box-content z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-4 lg:px-6">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="Otwórz menu"><Menu className="h-5 w-5" /></Button>
           <div className="relative min-w-0 max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
