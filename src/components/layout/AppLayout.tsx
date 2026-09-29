@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell, Building2, CheckSquare, Factory, Kanban, LayoutDashboard, Menu, Search, Users, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 const nav = [
@@ -44,7 +43,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-3">
             <Button variant="ghost" size="icon" aria-label="Powiadomienia"><Bell className="h-5 w-5" /></Button>
-            <Avatar className="h-8 w-8"><AvatarFallback>MJ</AvatarFallback></Avatar>
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-semibold text-foreground">MJ</div>
             <span className="hidden text-sm font-medium sm:inline">Mariusz Janeczek</span>
           </div>
         </header>
