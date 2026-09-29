@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Building2, MoreHorizontal, Pencil, Plus, Search, Trash2, Eye, X } from "lucide-react";
@@ -175,6 +175,7 @@ function Page() {
             </TableBody>
           </Table>
         </Card>
+        </>)}
       </div>
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
