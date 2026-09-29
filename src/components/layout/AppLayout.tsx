@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell, Building2, CheckSquare, Factory, Kanban, LayoutDashboard, Menu, Search, Users, X } from "lucide-react";
+import { Bell, Building2, CheckSquare, Factory, Kanban, LayoutDashboard, Menu, Search, Users, X , ScanSearch } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ const nav = [
   { to: "/companies", label: "Firmy", icon: Building2 },
   { to: "/contacts", label: "Kontakty", icon: Users },
   { to: "/pipeline", label: "Lejek Sprzedaży", icon: Kanban },
+  { to: "/importer", label: "Skaner Leadów", icon: ScanSearch },
   { to: "/tasks", label: "Zadania", icon: CheckSquare },
 ] as const;
 
