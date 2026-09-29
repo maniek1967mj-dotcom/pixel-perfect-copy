@@ -5,7 +5,6 @@ import { Briefcase, Copy, Database, Plus, ScanSearch, Target, TrendingUp, Trophy
 import { useDealStore, STAGES, toPLN, formatMoney, type Deal } from "@/data/dealStore";
 import { readLeadLog, type ImportedLead } from "@/utils/leadImport";
 import { coldMessage, parseScanReport } from "@/utils/scanParser";
-import { SAMPLE_REPORT } from "@/utils/sampleReport";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,11 +102,9 @@ function Page() {
   const won = deals.filter((d) => d.stage === "wygrana").length;
   const winRate = deals.length ? Math.round((won / deals.length) * 100) : 0;
 
-  const isSample = log.length === 0;
   const top = useMemo(() => {
-    const src = isSample ? parseScanReport(SAMPLE_REPORT) : log;
-    return [...src].sort((a, b) => fitRank(b.fit_score) - fitRank(a.fit_score)).slice(0, 3);
-  }, [log, isSample]);
+    return [...log].sort((a, b) => fitRank(b.fit_score) - fitRank(a.fit_score)).slice(0, 3);
+  }, [log]);
 
   const portfolio = ["Fabryka Smart", "Interim Mariusz", "CRM"].map((k) => {
     const items = open.filter((d) => portfolioOf(d) === k);
@@ -155,7 +152,7 @@ function Page() {
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Target className="h-5 w-5 text-primary" />
           <h2 className="mr-auto font-semibold text-foreground">TOP 3 LEADY NA DZIŚ (Problem-First)</h2>
-          {isSample && <Badge variant="outline">przykład – brak zaimportowanych leadów</Badge>}
+          
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           {top.map((l) => (

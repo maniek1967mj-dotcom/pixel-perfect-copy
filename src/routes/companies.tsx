@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, Pencil, Plus, Search, Trash2, Eye, X } from "lucide-react";
+import { Building2, MoreHorizontal, Pencil, Plus, Search, Trash2, Eye, X } from "lucide-react";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { useCompanyStore, ALL_POTENTIALS, SIZES } from "@/data/companyStore";
 import type { AppPotential, Company } from "@/types/crm";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,9 @@ function Page() {
           <Button onClick={openAdd}><Plus className="mr-1 h-4 w-4" />Dodaj Firmę</Button>
         </div>
 
+        {store.ready && store.companies.length === 0 ? (
+          <EmptyState icon={Building2} title="Brak firm" text="Dodaj pierwszą firmę ręcznie lub zaimportuj leady ze Skanera Leadów." action={<div className="flex flex-wrap justify-center gap-2"><Button onClick={openAdd}><Plus className="mr-1 h-4 w-4" />Dodaj Firmę</Button><Button variant="outline" asChild><Link to="/importer">Importuj ze skanera</Link></Button></div>} />
+        ) : (<>
         <Card className="flex flex-col gap-3 p-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

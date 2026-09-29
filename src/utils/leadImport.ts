@@ -3,8 +3,8 @@ import { readDeals, writeDeals, type DealAppType } from "@/data/dealStore";
 import type { AppPotential } from "@/types/crm";
 import type { ParsedLead } from "./scanParser";
 
-const IMPORTED_KEY = "crm.importedLeads.v1";
-const LOG_KEY = "crm.importedLeadLog.v1";
+const IMPORTED_KEY = "crm.importedLeads.v2";
+const LOG_KEY = "crm.importedLeadLog.v2";
 export type ImportedLead = ParsedLead & { imported_at: string };
 export function readLeadLog(): ImportedLead[] {
   try { return JSON.parse(localStorage.getItem(LOG_KEY) ?? "[]") as ImportedLead[]; } catch { return []; }

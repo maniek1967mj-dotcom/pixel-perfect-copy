@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, Copy, Download, ExternalLink, FileText, MapPin, Sparkles, User } from "lucide-react";
 import { parseScanReport, coldMessage, type ParsedLead } from "@/utils/scanParser";
-import { SAMPLE_REPORT } from "@/utils/sampleReport";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { importLead, readImported } from "@/utils/leadImport";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -113,9 +113,12 @@ function Page() {
         />
         <div className="flex flex-wrap gap-2">
           <Button onClick={process} disabled={!raw.trim()}><Sparkles className="mr-1 h-4 w-4" />Przetwórz Raport</Button>
-          <Button variant="outline" onClick={() => { setRaw(SAMPLE_REPORT); setLeads(null); }}><FileText className="mr-1 h-4 w-4" />Załaduj Przykładowy Raport</Button>
         </div>
       </Card>
+
+      {!leads && (
+        <EmptyState icon={FileText} title="Wklej pierwszy raport ze skanera" text="Wklej raport z Tabelą A i Tabelą B w pole powyżej, a następnie kliknij „Przetwórz Raport”." action={<Button variant="outline" onClick={() => document.querySelector<HTMLTextAreaElement>('textarea[aria-label="Raport ze skanera"]')?.focus()}>Wklej raport</Button>} />
+      )}
 
       {leads && (
         <Tabs defaultValue="b">
