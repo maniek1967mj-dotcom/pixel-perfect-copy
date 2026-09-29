@@ -71,12 +71,12 @@ export const exportCsv = () => {
   const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? "";
 
   const companiesCsv = toCsv(
-    ["Nazwa", "Branża", "Wielkość", "Strona WWW", "Miasto", "Notatki"],
-    companies.map((c) => [c.name, c.industry, c.size, c.website, c.city, c.notes]),
+    ["Nazwa", "NIP", "Branża", "Wielkość", "Park maszynowy", "Potencjał aplikacji"],
+    companies.map((c) => [c.name, c.nip, c.industry, c.size, c.machine_park, (c.app_potential ?? []).join(", ")]),
   );
   const dealsCsv = toCsv(
     ["Nazwa szansy", "Firma", "Etap", "Wartość", "Waluta", "Produkt", "Planowane zamknięcie"],
-    deals.map((d) => [d.title, companyName(d.companyId), d.stage, d.value, d.currency, d.product, d.expectedClose]),
+    deals.map((d) => [d.title, companyName(d.company_id), d.stage, d.value, d.currency, d.app_type, d.expected_close_date]),
   );
   download(`crm-firmy-${new Date().toISOString().slice(0, 10)}.csv`, companiesCsv, "text/csv;charset=utf-8");
   download(`crm-szanse-${new Date().toISOString().slice(0, 10)}.csv`, dealsCsv, "text/csv;charset=utf-8");
