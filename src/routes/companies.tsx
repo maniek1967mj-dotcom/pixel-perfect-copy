@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MoreHorizontal, Pencil, Plus, Search, Trash2, Eye, X } from "lucide-react";
-import { useCompanyStore, ALL_POTENTIALS } from "@/data/companyStore";
+import { useCompanyStore, ALL_POTENTIALS, SIZES } from "@/data/companyStore";
 import type { AppPotential, Company } from "@/types/crm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ export const Route = createFileRoute("/companies")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { open?: string } =>
+    typeof s["open"] === "string" ? { open: s["open"] } : {},
   component: Page,
 });
 
@@ -43,7 +45,6 @@ function PotentialBadge({ p }: { p: string }) {
   return <Badge variant="outline" className={potentialClass[p] ?? potentialClass['Inne']}>{p}</Badge>;
 }
 
-const SIZES = ["1-10", "11-50", "51-200", "200+"];
 type FormState = { name: string; nip: string; industry: string; size: string; machine_park: string; app_potential: AppPotential[] };
 const emptyForm: FormState = { name: "", nip: "", industry: "", size: "", machine_park: "", app_potential: [] };
 
@@ -55,7 +56,8 @@ function Page() {
   const [editId, setEditId] = useState<string | undefined>();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<{ name?: string; nip?: string }>({});
-  const [detailId, setDetailId] = useState<string | null>(null);
+  const search = Route.useSearch();
+  const [detailId, setDetailId] = useState<string | null>(search.open ?? null);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -198,7 +200,7 @@ function Page() {
               <Label>Wielkość firmy</Label>
               <Select value={SIZES.includes(form.size) ? form.size : ""} onValueChange={(v) => setForm({ ...form, size: v })}>
                 <SelectTrigger><SelectValue placeholder={form.size || "Wybierz"} /></SelectTrigger>
-                <SelectContent>{SIZES.map((s) => <SelectItem key={s} value={s}>{s} osób</SelectItem>)}</SelectContent>
+                <SelectContent>{SIZES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="grid gap-1.5">
