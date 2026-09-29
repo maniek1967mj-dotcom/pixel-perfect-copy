@@ -40,7 +40,7 @@ const potentialClass: Record<string, string> = {
 };
 
 function PotentialBadge({ p }: { p: string }) {
-  return <Badge variant="outline" className={potentialClass[p] ?? potentialClass.Inne}>{p}</Badge>;
+  return <Badge variant="outline" className={potentialClass[p] ?? potentialClass['Inne']}>{p}</Badge>;
 }
 
 const SIZES = ["1-10", "11-50", "51-200", "200+"];
@@ -196,7 +196,7 @@ function Page() {
             </div>
             <div className="grid gap-1.5">
               <Label>Wielkość firmy</Label>
-              <Select value={SIZES.includes(form.size) ? form.size : undefined} onValueChange={(v) => setForm({ ...form, size: v })}>
+              <Select value={SIZES.includes(form.size) ? form.size : ""} onValueChange={(v) => setForm({ ...form, size: v })}>
                 <SelectTrigger><SelectValue placeholder={form.size || "Wybierz"} /></SelectTrigger>
                 <SelectContent>{SIZES.map((s) => <SelectItem key={s} value={s}>{s} osób</SelectItem>)}</SelectContent>
               </Select>
