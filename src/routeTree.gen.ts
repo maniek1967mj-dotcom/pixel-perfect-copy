@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CompaniesRouteImport } from './routes/companies'
 import { Route as ContactsRouteImport } from './routes/contacts'
+import { Route as ImporterRouteImport } from './routes/importer'
 import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as TasksRouteImport } from './routes/tasks'
 
@@ -30,6 +31,11 @@ const ContactsRoute = ContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImporterRoute = ImporterRouteImport.update({
+  id: '/importer',
+  path: '/importer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PipelineRoute = PipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/companies': typeof CompaniesRoute
   '/contacts': typeof ContactsRoute
+  '/importer': typeof ImporterRoute
   '/pipeline': typeof PipelineRoute
   '/tasks': typeof TasksRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/companies': typeof CompaniesRoute
   '/contacts': typeof ContactsRoute
+  '/importer': typeof ImporterRoute
   '/pipeline': typeof PipelineRoute
   '/tasks': typeof TasksRoute
 }
@@ -60,21 +68,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/companies': typeof CompaniesRoute
   '/contacts': typeof ContactsRoute
+  '/importer': typeof ImporterRoute
   '/pipeline': typeof PipelineRoute
   '/tasks': typeof TasksRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/companies' | '/contacts' | '/pipeline' | '/tasks'
+  fullPaths:
+    '/' | '/companies' | '/contacts' | '/importer' | '/pipeline' | '/tasks'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/companies' | '/contacts' | '/pipeline' | '/tasks'
-  id: '__root__' | '/' | '/companies' | '/contacts' | '/pipeline' | '/tasks'
+  to: '/' | '/companies' | '/contacts' | '/importer' | '/pipeline' | '/tasks'
+  id:
+    | '__root__'
+    | '/'
+    | '/companies'
+    | '/contacts'
+    | '/importer'
+    | '/pipeline'
+    | '/tasks'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CompaniesRoute: typeof CompaniesRoute
   ContactsRoute: typeof ContactsRoute
+  ImporterRoute: typeof ImporterRoute
   PipelineRoute: typeof PipelineRoute
   TasksRoute: typeof TasksRoute
 }
@@ -102,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/importer': {
+      id: '/importer'
+      path: '/importer'
+      fullPath: '/importer'
+      preLoaderRoute: typeof ImporterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pipeline': {
       id: '/pipeline'
       path: '/pipeline'
@@ -123,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CompaniesRoute: CompaniesRoute,
   ContactsRoute: ContactsRoute,
+  ImporterRoute: ImporterRoute,
   PipelineRoute: PipelineRoute,
   TasksRoute: TasksRoute,
 }
