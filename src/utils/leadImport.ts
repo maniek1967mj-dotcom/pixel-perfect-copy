@@ -4,12 +4,17 @@ import type { AppPotential } from "@/types/crm";
 import type { ParsedLead } from "./scanParser";
 
 const IMPORTED_KEY = "crm.importedLeads.v1";
+const LOG_KEY = "crm.importedLeadLog.v1";
+export type ImportedLead = ParsedLead & { imported_at: string };
+export function readLeadLog(): ImportedLead[] {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) ?? "[]") as ImportedLead[]; } catch { return []; }
+}
 
 export function readImported(): string[] {
   try { return JSON.parse(localStorage.getItem(IMPORTED_KEY) ?? "[]") as string[]; } catch { return []; }
 }
 
-const ESTIMATE: Record<ParsedLead["suggested_app"], number> = { "Fabryka Smart": 150000, "Interim Mariusz": 60000, CRM: 30000 };
+const ESTIMATE: Record<ParsedLead["suggested_app"], number> = { "Fabryka Smart": 120000, "Interim Mariusz": 120000, CRM: 35000 };
 
 /** Saves a lead as company (add or update by name), optional contact and a new deal in "Sygnał". */
 export function importLead(l: ParsedLead) {
@@ -45,7 +50,7 @@ export function importLead(l: ParsedLead) {
     }
   }
 
-  const close = new Date(); close.setDate(close.getDate() + 60);
+  const close = new Date(); close.setDate(close.getDate() + 45);
   const deals = readDeals();
   writeDeals([
     ...deals,
@@ -64,6 +69,8 @@ export function importLead(l: ParsedLead) {
     },
   ]);
 
+  const log = readLeadLog().filter((x) => x.key !== l.key);
+  localStorage.setItem(LOG_KEY, JSON.stringify([...log, { ...l, imported_at: now }]));
   const imported = readImported();
   if (!imported.includes(l.key)) localStorage.setItem(IMPORTED_KEY, JSON.stringify([...imported, l.key]));
 }
