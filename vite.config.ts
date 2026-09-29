@@ -21,9 +21,11 @@ export default defineConfig({
         injectRegister: null,
         manifest: false, // served from public/manifest.json
         filename: "sw.js",
+        outDir: "dist/client",
         devOptions: { enabled: false },
         workbox: {
           globPatterns: ["**/*.{js,css,png,svg,ico,woff2,json}"],
+          globDirectory: "dist/client",
           navigateFallback: null,
           cleanupOutdatedCaches: true,
           clientsClaim: true,
