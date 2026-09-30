@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, ChevronLeft, ChevronRight, Download, List, Phone, PhoneCall, Plus, Target } from "lucide-react";
+import { Calendar, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Download, Factory, FileText, Handshake, List, Phone, PhoneCall, PhoneOff, Plus, Target, XCircle, type LucideIcon } from "lucide-react";
 import { useCompanyStore } from "@/data/companyStore";
 import { useDealStore, type Deal } from "@/data/dealStore";
 import { useActivityStore, OUTCOMES, outcomeLabel, type Activity, type CallOutcome } from "@/data/activityStore";
@@ -37,12 +37,19 @@ const fmtDay = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pl-P
 const OPEN = (d: Deal) => d.stage !== "wygrana" && d.stage !== "przegrana";
 
 type Kind = "done" | "planned" | "overdue" | "audit";
-interface CalEvent { key: string; date: string; kind: Kind; label: string; dealId?: string | undefined; activityId?: string | undefined }
+interface CalEvent { key: string; date: string; kind: Kind; label: string; activityType?: ActivityType; dealId?: string | undefined; activityId?: string | undefined }
 const KIND_CLS: Record<Kind, string> = {
   done: "bg-ev-done/15 text-ev-done border-ev-done/40",
   planned: "bg-ev-planned/15 text-ev-planned border-ev-planned/40",
   overdue: "bg-ev-overdue/15 text-ev-overdue border-ev-overdue/40",
   audit: "bg-ev-audit/15 text-ev-audit border-ev-audit/40",
+};
+const OUTCOME_META: Record<CallOutcome, { icon: LucideIcon; cls: string }> = {
+  audyt: { icon: CheckCircle2, cls: "text-ev-done" },
+  ponowny: { icon: Calendar, cls: "text-ev-audit" },
+  oferta: { icon: FileText, cls: "text-ev-audit" },
+  odrzucony: { icon: XCircle, cls: "text-ev-overdue" },
+  nie_odbiera: { icon: PhoneOff, cls: "text-ev-planned" },
 };
 
 function Page() {
@@ -74,11 +81,10 @@ function Page() {
   const events = useMemo<CalEvent[]>(() => {
     const ev: CalEvent[] = [];
     for (const d of ds.deals) {
-      if (OPEN(d) && d.followUpDate) ev.push({ key: "f" + d.id, date: d.followUpDate, kind: d.followUpDate < today ? "overdue" : "planned", label: `📞 ${companyName(d.company_id)}`, dealId: d.id });
+      if (OPEN(d) && d.followUpDate) ev.push({ key: "f" + d.id, date: d.followUpDate, kind: d.followUpDate < today ? "overdue" : "planned", activityType: "call", label: companyName(d.company_id), dealId: d.id });
     }
     for (const a of as.activities) {
-      if (a.type === "call") ev.push({ key: a.id, date: a.date, kind: "done", label: `✔ ${a.title}`, activityId: a.id, dealId: a.deal_id });
-      else ev.push({ key: a.id, date: a.date, kind: a.done ? "done" : "audit", label: `${a.type === "audit" ? "🏭" : "🤝"} ${a.title}`, activityId: a.id, dealId: a.deal_id });
+      ev.push({ key: a.id, date: a.date, kind: a.done || a.type === "call" ? "done" : "audit", activityType: a.type, label: a.title, activityId: a.id, dealId: a.deal_id });
     }
     return ev;
     // eslint-disable-next-line react-hooks/exhaustive-deps
