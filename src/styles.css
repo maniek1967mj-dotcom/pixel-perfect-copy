@@ -54,6 +54,10 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+  --color-ev-done: var(--ev-done);
+  --color-ev-planned: var(--ev-planned);
+  --color-ev-overdue: var(--ev-overdue);
+  --color-ev-audit: var(--ev-audit);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -71,6 +75,10 @@
 
 :root {
   --radius: 0.625rem;
+  --ev-done: oklch(0.62 0.17 150);
+  --ev-planned: oklch(0.72 0.17 55);
+  --ev-overdue: oklch(0.58 0.22 27);
+  --ev-audit: oklch(0.6 0.16 245);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
