@@ -84,8 +84,16 @@ function splitRow(line: string): string[] {
 
 function detectTable(heading: string): SourceTable | null {
   const h = norm(heading);
-  if (/tabela\s*b|fabryka\s*smart/.test(h)) return "FABRYKA_SMART";
-  if (/tabela\s*a|mariusz|interim/.test(h)) return "MARIUSZ_INTERIM";
+  if (/tabela\s*b|fabryka\s*smart|sygnaly\s*sprzedazowe/.test(h)) return "FABRYKA_SMART";
+  if (/tabela\s*a|mariusz|interim|leady\s*operacyjne|rekrutacyjn/.test(h)) return "MARIUSZ_INTERIM";
+  return null;
+}
+
+/** Detects the table kind from its header cells when no section heading was seen. */
+function detectTableFromHeaders(cells: string[]): SourceTable | null {
+  const h = norm(cells.join(" "));
+  if (/dopasowana\s*aplikac/.test(h)) return "FABRYKA_SMART";
+  if (/rola|zlecenie/.test(h)) return "MARIUSZ_INTERIM";
   return null;
 }
 
@@ -158,6 +166,8 @@ function buildLead(rec: Partial<Record<Field, string>>, table: SourceTable | nul
     ...(rec.fit_score ? { fit_score: rec.fit_score } : {}),
     ...(srcUrl ? { source_url: srcUrl } : {}),
     suggested_app: suggestApp(src, `${rec.app ?? ""} ${rec.offer ?? ""}`),
+    lead_type: src === "FABRYKA_SMART" ? "APLIKACJA A1" : "ZATRUDNIENIE / KONSULTING",
+    suggested_offer: src === "FABRYKA_SMART" ? "FABRYKA SMART A1" : "INTERIM / KIEROWNIK / AUDYT",
     ...h,
   };
 }
