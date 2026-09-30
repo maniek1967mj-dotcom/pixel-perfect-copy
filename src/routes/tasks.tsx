@@ -37,7 +37,7 @@ const fmtDay = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pl-P
 const OPEN = (d: Deal) => d.stage !== "wygrana" && d.stage !== "przegrana";
 
 type Kind = "done" | "planned" | "overdue" | "audit";
-interface CalEvent { key: string; date: string; kind: Kind; label: string; dealId?: string; activityId?: string }
+interface CalEvent { key: string; date: string; kind: Kind; label: string; dealId?: string | undefined; activityId?: string | undefined }
 const KIND_CLS: Record<Kind, string> = {
   done: "bg-ev-done/15 text-ev-done border-ev-done/40",
   planned: "bg-ev-planned/15 text-ev-planned border-ev-planned/40",
@@ -85,7 +85,7 @@ function Page() {
   }, [ds.deals, as.activities, cs.companies, today]);
 
   const reschedule = (e: CalEvent, date: string) => {
-    if (e.kind === "done") return toast.error("Zrealizowanych zdarzeń nie można przenosić");
+    if (e.kind === "done") { toast.error("Zrealizowanych zdarzeń nie można przenosić"); return; }
     if (e.activityId) as.update(e.activityId, { date });
     else if (e.dealId) ds.patch(e.dealId, { followUpDate: date });
     toast.success(`Przeniesiono na ${fmtDay(date)}`);
@@ -95,11 +95,11 @@ function Page() {
     const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
     const esc = (s: string) => s.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
     const items = events.filter((e) => e.kind !== "done");
-    if (!items.length) return toast.error("Brak zaplanowanych zadań do eksportu");
+    if (!items.length) { toast.error("Brak zaplanowanych zadań do eksportu"); return; }
     const body = items.map((e) => {
       const d = e.date.replace(/-/g, ""), n = addDays(e.date, 1).replace(/-/g, "");
       const deal = dealById(e.dealId); const ct = contactOf(deal);
-      const desc = [deal?.title, ct?.name, ct?.phone, ct?.email].filter(Boolean).join(" | ");
+      const desc = [deal?.title, ct && `${ct.first_name} ${ct.last_name}`, ct?.phone, ct?.email].filter(Boolean).join(" | ");
       return ["BEGIN:VEVENT", `UID:${e.key}@fabryka-smart-crm`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${n}`, `SUMMARY:${esc(e.label)}`, `DESCRIPTION:${esc(desc)}`, "END:VEVENT"].join("\r\n");
     });
     const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Fabryka Smart CRM//PL", "CALSCALE:GREGORIAN", ...body, "END:VCALENDAR"].join("\r\n");
@@ -161,7 +161,7 @@ function Page() {
                     <span className={cn("rounded border px-2 py-0.5 text-xs", late ? KIND_CLS.overdue : KIND_CLS.planned)}>{late ? `Zaległe (${fmtDay(d.followUpDate!)})` : "Dziś"}</span>
                     <span className="font-medium">{companyName(d.company_id)}</span>
                   </div>
-                  <div className="mt-1 text-sm text-muted-foreground">{d.title}{ct ? ` · ${ct.name}` : ""}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{d.title}{ct ? ` · ${ct.first_name} ${ct.last_name}` : ""}</div>
                 </div>
                 <div className="flex gap-2">
                   {ct?.phone && <Button size="sm" variant="outline" asChild><a href={`tel:${ct.phone.replace(/\s/g, "")}`}><Phone className="mr-1 h-4 w-4" />{ct.phone}</a></Button>}
