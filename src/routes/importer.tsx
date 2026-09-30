@@ -67,6 +67,9 @@ function Page() {
             <Card key={l.key} className={`flex flex-col gap-3 p-4 ${done ? "opacity-75" : ""}`}>
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="mr-auto font-semibold text-foreground">{l.company_name}</h3>
+                <Badge className={l.source_table === "FABRYKA_SMART" ? "border-emerald-600/40 bg-emerald-600/15 text-emerald-700" : "border-blue-600/40 bg-blue-600/15 text-blue-700"}>
+                  {l.source_table === "FABRYKA_SMART" ? "FABRYKA SMART A1" : "ZATRUDNIENIE / INTERIM"}
+                </Badge>
                 {l.location && <Badge variant="outline" className="gap-1"><MapPin className="h-3 w-3" />{l.location}</Badge>}
                 {l.fit_score && <Badge variant="outline" className={fitClass(l.fit_score)}>{l.fit_score}</Badge>}
               </div>

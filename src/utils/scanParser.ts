@@ -172,40 +172,8 @@ function buildLead(rec: Partial<Record<Field, string>>, table: SourceTable | nul
   };
 }
 
-/** Parses "KEY: value" blocks (AI Hunter format). A block starts at a heading or a FIRMA line. */
-function parseBlocks(lines: string[]): ParsedLead[] {
-  const out: ParsedLead[] = [];
-  let rec: Partial<Record<Field, string>> = {};
-  let table: SourceTable | null = null;
-  const flush = () => { const l = buildLead(rec, table); if (l) out.push(l); rec = {}; };
-  for (const line of lines) {
-    const t = stripMd(line.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "")).trim();
-    if (!t || t.startsWith("|")) continue;
-    const heading = /^#{1,6}\s+/.test(line.trim());
-    const kv = t.match(/^([A-Za-zÀ-žĄĆĘŁŃÓŚŹŻąćęłńóśźż /()&.-]{1,40}?)\s*[:–=]\s*(.+)$/);
-    if (heading) {
-      const htext = t.replace(/^#+\s*/, "");
-      const d = detectTable(htext);
-      if (Object.keys(rec).length) flush();
-      if (d) table = d;
-      const nm = htext.replace(/^\d+[.)]\s*/, "").replace(/^(lead|firma|company)\s*[:#-]?\s*/i, "").trim();
-      if (!d && nm && !kv) rec.company_name = nm;
-      else if (kv) { /* fallthrough to kv handling below */ } else continue;
-      if (!kv) continue;
-    }
-    if (!kv) continue;
-    const key = norm(kv[1]!.trim());
-    const f = /^(firma|company|nazwa|spolka)/.test(key) ? "company_name" : HEADER_MAP.find(([re]) => re.test(key))?.[1];
-    if (!f) continue;
-    if (f === "company_name" && rec.company_name && Object.keys(rec).length > 1) flush();
-    const v = kv[2]!.trim();
-    if (!EMPTY.test(v) && !rec[f]) rec[f] = v;
-  }
-  flush();
-  return out;
-}
-
-/** Parses a morning scan report (Markdown tables under "Tabela A" / "Tabela B" headings). */
+/** Strictly parses Markdown tables under "Tabela A" / "Tabela B" headings.
+ *  Plain text, headings, bullets and notes are ignored — only `|`-rows produce leads. */
 export function parseScanReport(raw: string): ParsedLead[] {
   const lines = raw.split(/\r?\n/);
   const out: ParsedLead[] = [];
@@ -214,7 +182,9 @@ export function parseScanReport(raw: string): ParsedLead[] {
 
   for (const line of lines) {
     const t = line.trim();
-    if (!t.startsWith("|")) {
+    // Valid Markdown table row: starts with '|' and has multiple delimiters.
+    const isRow = t.startsWith("|") && (t.match(/\|/g)?.length ?? 0) >= 2;
+    if (!isRow) {
       headers = null;
       const detected = t ? detectTable(t) : null;
       if (detected) table = detected;
@@ -224,7 +194,7 @@ export function parseScanReport(raw: string): ParsedLead[] {
     if (cells.every((c) => /^:?-{2,}:?$/.test(c))) continue; // separator row
     if (!headers) {
       headers = cells.map((c) => HEADER_MAP.find(([re]) => re.test(norm(stripMd(c))))?.[1] ?? null);
-      if (!table) table = detectTable(cells.join(" "));
+      if (!table) table = detectTable(cells.join(" ")) ?? detectTableFromHeaders(cells);
       continue;
     }
     const rec: Partial<Record<Field, string>> = {};
@@ -239,8 +209,6 @@ export function parseScanReport(raw: string): ParsedLead[] {
     const lead = buildLead(rec, table, url);
     if (lead) out.push(lead);
   }
-  const seen = new Set(out.map((l) => l.key));
-  for (const l of parseBlocks(lines)) if (!seen.has(l.key)) { seen.add(l.key); out.push(l); }
   return out;
 }
 
