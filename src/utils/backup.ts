@@ -5,6 +5,7 @@ const C_KEY = "crm.companies.v4";
 const P_KEY = "crm.contacts.v4";
 const D_KEY = "crm.deals.v2";
 const IMPORTED_KEY = "crm.importedLeads.v2";
+const O_KEY = "crm.orders.v1";
 const LOG_KEY = "crm.importedLeadLog.v2";
 
 const read = <T,>(key: string): T[] => {
@@ -28,6 +29,7 @@ export const exportBackupJson = () => {
     companies: read<Company>(C_KEY),
     contacts: read<Contact>(P_KEY),
     deals: read<Deal>(D_KEY),
+    orders: read<unknown>(O_KEY),
     importedLeads: read<string>(IMPORTED_KEY),
     importedLeadLog: read<unknown>(LOG_KEY),
   };
@@ -47,6 +49,7 @@ export const importBackupJson = (file: File): Promise<{ companies: number; conta
         localStorage.setItem(C_KEY, JSON.stringify(data.companies));
         localStorage.setItem(P_KEY, JSON.stringify(data.contacts));
         localStorage.setItem(D_KEY, JSON.stringify(data.deals));
+        localStorage.setItem(O_KEY, JSON.stringify(Array.isArray(data.orders) ? data.orders : []));
         if (Array.isArray(data.importedLeads)) localStorage.setItem(IMPORTED_KEY, JSON.stringify(data.importedLeads));
         if (Array.isArray(data.importedLeadLog)) localStorage.setItem(LOG_KEY, JSON.stringify(data.importedLeadLog));
         resolve({ companies: data.companies.length, contacts: data.contacts.length, deals: data.deals.length });
