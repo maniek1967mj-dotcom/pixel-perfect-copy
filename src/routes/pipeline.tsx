@@ -240,6 +240,25 @@ function Page() {
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground"><span className="mr-1" aria-label={d.country ?? "PL"}>{flagOf(d.country)}</span>{companyName(d.company_id)}{d.region ? ` · ${d.region}` : ""}</div>
+                      {(() => {
+                        const ct = contactOf(d.contact_id);
+                        if (!ct) return null;
+                        return (
+                          <div className="space-y-0.5 rounded-md bg-muted/50 p-2 text-xs" onClick={(e) => e.stopPropagation()}>
+                            <div className="font-medium text-foreground">{ct.first_name} {ct.last_name}</div>
+                            {ct.phone && (
+                              <a href={`tel:${ct.phone.replace(/\s/g, "")}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                                <Phone className="h-3 w-3 shrink-0" />{ct.phone}
+                              </a>
+                            )}
+                            {ct.email && (
+                              <a href={`mailto:${ct.email}`} className="flex items-center gap-1.5 break-all text-primary hover:underline">
+                                <Mail className="h-3 w-3 shrink-0" />{ct.email}
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="flex flex-wrap gap-1">
                         {d.priority && <Badge variant="outline" className={prioClass[d.priority]}>{d.priority}{d.timeWindow ? `: ${twLabel(d.timeWindow)}` : ""}</Badge>}
                         <Badge variant="outline" className={appClass[d.app_type]}>{d.suggestedOffer ?? d.app_type}</Badge>
