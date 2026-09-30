@@ -77,6 +77,7 @@ function Page() {
   const [valueText, setValueText] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [dragOver, setDragOver] = useState<Stage | null>(null);
+  const [showTech, setShowTech] = useState(false);
 
   const companyName = (id: string) => cs.companies.find((c) => c.id === id)?.name ?? "—";
   const contactOf = (id?: string) => (id ? cs.contacts.find((c) => c.id === id) : undefined);
@@ -87,11 +88,11 @@ function Page() {
   const active = visible.filter((d) => d.stage !== "przegrana");
   const activeTotal = active.reduce((s, d) => s + toPLN(d), 0);
 
-  const openAdd = (stage: Stage = "sygnal") => { setEditId(undefined); setForm({ ...emptyForm(), stage }); setValueText(""); setErrors({}); setOpen(true); };
+  const openAdd = (stage: Stage = "sygnal") => { setEditId(undefined); setForm({ ...emptyForm(), stage }); setValueText(""); setErrors({}); setShowTech(false); setOpen(true); };
   const openEdit = (d: Deal) => {
     setEditId(d.id);
     setForm({ title: d.title, company_id: d.company_id, contact_id: d.contact_id ?? "", stage: d.stage, value: d.value, currency: d.currency, app_type: d.app_type, expected_close_date: d.expected_close_date, notes: d.notes ?? "", ...extras(d) });
-    setValueText(String(d.value)); setErrors({}); setOpen(true);
+    setValueText(String(d.value)); setErrors({}); setShowTech(false); setOpen(true);
   };
   const submit = () => {
     const e: Record<string, string> = {};
