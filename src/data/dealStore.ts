@@ -60,6 +60,7 @@ export interface Deal {
   region?: string;
   languageNote?: string;
   remoteFirst?: boolean;
+  sourceUrl?: string;
 }
 
 /** Fixed rates used only to show pipeline totals in PLN. */

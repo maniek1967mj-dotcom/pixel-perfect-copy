@@ -91,6 +91,7 @@ export function importLead(l: ParsedLead) {
       ...(l.region ? { region: l.region } : {}),
       ...(l.language_note ? { languageNote: l.language_note } : {}),
       remoteFirst: l.remote_first ?? country !== "PL",
+      ...(l.source_url ? { sourceUrl: l.source_url } : {}),
     },
   ]);
 

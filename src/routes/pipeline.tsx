@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRightLeft, Calendar, ChevronDown, Globe, Kanban, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowRightLeft, Calendar, ChevronDown, ExternalLink, Globe, Kanban, Mail, MoreHorizontal, Pencil, Phone, Plus, Trash2, X } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { useCompanyStore } from "@/data/companyStore";
 import { createOrderFromDeal } from "@/data/orderStore";
@@ -57,7 +57,7 @@ type FormState = Omit<Deal, "id" | "created_at">;
 const emptyForm = (): FormState => ({ title: "", company_id: "", contact_id: "", stage: "sygnal", value: 0, currency: "PLN", app_type: "Fabryka Smart", expected_close_date: "", notes: "" });
 
 function extras(d: Deal): Partial<FormState> {
-  const keys = ["fact", "trigger", "hypothesis", "verificationQuestion", "firstAction", "scoring", "timeWindow", "priority", "suggestedOffer", "followUpDate", "country", "region", "languageNote", "remoteFirst"] as const;
+  const keys = ["fact", "trigger", "hypothesis", "verificationQuestion", "firstAction", "scoring", "timeWindow", "priority", "suggestedOffer", "followUpDate", "country", "region", "languageNote", "remoteFirst", "sourceUrl"] as const;
   const o: Record<string, unknown> = {};
   for (const k of keys) if (d[k] !== undefined) o[k] = d[k];
   return o as Partial<FormState>;
@@ -77,8 +77,10 @@ function Page() {
   const [valueText, setValueText] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [dragOver, setDragOver] = useState<Stage | null>(null);
+  const [showTech, setShowTech] = useState(false);
 
   const companyName = (id: string) => cs.companies.find((c) => c.id === id)?.name ?? "—";
+  const contactOf = (id?: string) => (id ? cs.contacts.find((c) => c.id === id) : undefined);
   const visible = useMemo(
     () => ds.deals.filter((d) => (appF === "all" || d.app_type === appF) && (compF === "all" || d.company_id === compF) && (countryF === "all" || (d.country ?? "PL") === countryF) && (twF === "all" || d.timeWindow === twF)),
     [ds.deals, appF, compF, countryF, twF],
@@ -86,11 +88,11 @@ function Page() {
   const active = visible.filter((d) => d.stage !== "przegrana");
   const activeTotal = active.reduce((s, d) => s + toPLN(d), 0);
 
-  const openAdd = (stage: Stage = "sygnal") => { setEditId(undefined); setForm({ ...emptyForm(), stage }); setValueText(""); setErrors({}); setOpen(true); };
+  const openAdd = (stage: Stage = "sygnal") => { setEditId(undefined); setForm({ ...emptyForm(), stage }); setValueText(""); setErrors({}); setShowTech(false); setOpen(true); };
   const openEdit = (d: Deal) => {
     setEditId(d.id);
     setForm({ title: d.title, company_id: d.company_id, contact_id: d.contact_id ?? "", stage: d.stage, value: d.value, currency: d.currency, app_type: d.app_type, expected_close_date: d.expected_close_date, notes: d.notes ?? "", ...extras(d) });
-    setValueText(String(d.value)); setErrors({}); setOpen(true);
+    setValueText(String(d.value)); setErrors({}); setShowTech(false); setOpen(true);
   };
   const submit = () => {
     const e: Record<string, string> = {};
@@ -239,6 +241,25 @@ function Page() {
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground"><span className="mr-1" aria-label={d.country ?? "PL"}>{flagOf(d.country)}</span>{companyName(d.company_id)}{d.region ? ` · ${d.region}` : ""}</div>
+                      {(() => {
+                        const ct = contactOf(d.contact_id);
+                        if (!ct) return null;
+                        return (
+                          <div className="space-y-0.5 rounded-md bg-muted/50 p-2 text-xs" onClick={(e) => e.stopPropagation()}>
+                            <div className="font-medium text-foreground">{ct.first_name} {ct.last_name}</div>
+                            {ct.phone && (
+                              <a href={`tel:${ct.phone.replace(/\s/g, "")}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                                <Phone className="h-3 w-3 shrink-0" />{ct.phone}
+                              </a>
+                            )}
+                            {ct.email && (
+                              <a href={`mailto:${ct.email}`} className="flex items-center gap-1.5 break-all text-primary hover:underline">
+                                <Mail className="h-3 w-3 shrink-0" />{ct.email}
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="flex flex-wrap gap-1">
                         {d.priority && <Badge variant="outline" className={prioClass[d.priority]}>{d.priority}{d.timeWindow ? `: ${twLabel(d.timeWindow)}` : ""}</Badge>}
                         <Badge variant="outline" className={appClass[d.app_type]}>{d.suggestedOffer ?? d.app_type}</Badge>
@@ -286,6 +307,34 @@ function Page() {
             <DialogDescription>Szczegóły oferty i etap w lejku.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
+            {(() => {
+              const ct = contactOf(form.contact_id);
+              const url = form.sourceUrl ?? (editId ? ds.deals.find((x) => x.id === editId)?.sourceUrl : undefined);
+              if (!ct && !url) return null;
+              return (
+                <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-primary">Szybki Kontakt</div>
+                  {ct && <div className="text-sm font-semibold text-foreground">{ct.first_name} {ct.last_name}{ct.role ? <span className="ml-1 text-xs font-normal text-muted-foreground">· {ct.role}</span> : ""}</div>}
+                  <div className="flex flex-wrap gap-2">
+                    {ct?.phone && (
+                      <Button asChild size="sm" className="gap-1.5">
+                        <a href={`tel:${ct.phone.replace(/\s/g, "")}`}><Phone className="h-4 w-4" />Zadzwoń: {ct.phone}</a>
+                      </Button>
+                    )}
+                    {ct?.email && (
+                      <Button asChild size="sm" variant="outline" className="gap-1.5">
+                        <a href={`mailto:${ct.email}`}><Mail className="h-4 w-4" />{ct.email}</a>
+                      </Button>
+                    )}
+                    {url && (
+                      <Button asChild size="sm" variant="outline" className="gap-1.5">
+                        <a href={url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" />Otwórz Ogłoszenie</a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
             <div className="grid gap-1.5">
               <Label htmlFor="d-title">Tytuł szansy *</Label>
               <Input id="d-title" maxLength={150} placeholder="np. Audyt i Wdrożenie Systemu Smart" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -340,11 +389,17 @@ function Page() {
                 </Select>
               </div>
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="d-date">Przewidywana data zamknięcia</Label>
-              <Input id="d-date" type="date" value={form.expected_close_date} onChange={(e) => setForm({ ...form, expected_close_date: e.target.value })} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="d-date">Przewidywana data zamknięcia</Label>
+                <Input id="d-date" type="date" value={form.expected_close_date} onChange={(e) => setForm({ ...form, expected_close_date: e.target.value })} />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="d-follow">Follow-up</Label>
+                <Input id="d-follow" type="date" value={form.followUpDate ?? ""} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} />
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Kraj</Label>
                 <Select value={form.country ?? "PL"} onValueChange={(v) => setForm({ ...form, country: v as Country })}>
@@ -359,47 +414,53 @@ function Page() {
                   <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-1.5">
-                <Label>Okno</Label>
-                <Select value={form.timeWindow ?? ""} onValueChange={(v) => setForm({ ...form, timeWindow: v as TimeWindow })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{TIME_WINDOWS.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label>Sugerowana oferta</Label>
-                <Select value={form.suggestedOffer ?? ""} onValueChange={(v) => setForm({ ...form, suggestedOffer: v as SuggestedOffer })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{OFFERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-follow">Follow-up</Label>
-                <Input id="d-follow" type="date" value={form.followUpDate ?? ""} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-region">Region</Label>
-                <Input id="d-region" maxLength={100} value={form.region ?? ""} onChange={(e) => setForm({ ...form, region: e.target.value })} />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-lang">Język</Label>
-                <Input id="d-lang" maxLength={200} placeholder="Polski" value={form.languageNote ?? ""} onChange={(e) => setForm({ ...form, languageNote: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {(["t", "p", "f", "a"] as const).map((k) => (
-                <div key={k} className="grid gap-1.5">
-                  <Label htmlFor={`d-s-${k}`}>{k.toUpperCase()} (0-5)</Label>
-                  <Input id={`d-s-${k}`} type="number" min={0} max={5} value={form.scoring?.[k] ?? ""} onChange={(e) => {
-                    const v = Math.max(0, Math.min(5, Number(e.target.value) || 0));
-                    setForm({ ...form, scoring: { t: 0, p: 0, f: 0, a: 0, ...form.scoring, [k]: v } });
-                  }} />
+            <div className="rounded-lg border">
+              <button type="button" className="flex w-full items-center justify-between p-3 text-sm font-medium text-muted-foreground" onClick={() => setShowTech((v) => !v)} aria-expanded={showTech}>
+                Pokaż punktację i parametry techniczne
+                <ChevronDown className={`h-4 w-4 transition-transform ${showTech ? "rotate-180" : ""}`} />
+              </button>
+              {showTech && (
+                <div className="grid gap-4 border-t p-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-1.5">
+                      <Label>Okno czasowe</Label>
+                      <Select value={form.timeWindow ?? ""} onValueChange={(v) => setForm({ ...form, timeWindow: v as TimeWindow })}>
+                        <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>{TIME_WINDOWS.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label>Sugerowana oferta</Label>
+                      <Select value={form.suggestedOffer ?? ""} onValueChange={(v) => setForm({ ...form, suggestedOffer: v as SuggestedOffer })}>
+                        <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>{OFFERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="d-region">Region</Label>
+                      <Input id="d-region" maxLength={100} value={form.region ?? ""} onChange={(e) => setForm({ ...form, region: e.target.value })} />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="d-lang">Język</Label>
+                      <Input id="d-lang" maxLength={200} placeholder="Polski" value={form.languageNote ?? ""} onChange={(e) => setForm({ ...form, languageNote: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(["t", "p", "f", "a"] as const).map((k) => (
+                      <div key={k} className="grid gap-1.5">
+                        <Label htmlFor={`d-s-${k}`}>{k.toUpperCase()} (0-5)</Label>
+                        <Input id={`d-s-${k}`} type="number" min={0} max={5} value={form.scoring?.[k] ?? ""} onChange={(e) => {
+                          const v = Math.max(0, Math.min(5, Number(e.target.value) || 0));
+                          setForm({ ...form, scoring: { t: 0, p: 0, f: 0, a: 0, ...form.scoring, [k]: v } });
+                        }} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
             {([["fact", "Fakt"], ["trigger", "Trigger"], ["hypothesis", "Hipoteza"], ["verificationQuestion", "Pytanie do firmy / Haczyk"], ["firstAction", "Pierwsza akcja"]] as const).map(([k, label]) => (
               <div key={k} className="grid gap-1.5">
