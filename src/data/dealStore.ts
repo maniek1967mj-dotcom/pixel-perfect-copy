@@ -101,5 +101,6 @@ export function useDealStore() {
   };
   const move = (id: string, stage: Stage) => save(deals.map((d) => (d.id === id ? { ...d, stage } : d)));
   const remove = (id: string) => save(deals.filter((d) => d.id !== id));
-  return { ready, deals, upsert, move, remove };
+  const patch = (id: string, data: Partial<Deal>) => save(deals.map((d) => (d.id === id ? { ...d, ...data } : d)));
+  return { ready, deals, upsert, move, remove, patch };
 }
