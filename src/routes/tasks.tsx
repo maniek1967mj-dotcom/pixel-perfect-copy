@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, ChevronLeft, ChevronRight, Download, List, Phone, PhoneCall, Plus, Target } from "lucide-react";
+import { Calendar, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Download, Factory, FileText, Handshake, List, Phone, PhoneCall, PhoneOff, Plus, Target, XCircle, type LucideIcon } from "lucide-react";
 import { useCompanyStore } from "@/data/companyStore";
 import { useDealStore, type Deal } from "@/data/dealStore";
-import { useActivityStore, OUTCOMES, outcomeLabel, type Activity, type CallOutcome } from "@/data/activityStore";
+import { useActivityStore, OUTCOMES, outcomeLabel, type Activity, type ActivityType, type CallOutcome } from "@/data/activityStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,12 +37,19 @@ const fmtDay = (s: string) => new Date(s + "T12:00:00").toLocaleDateString("pl-P
 const OPEN = (d: Deal) => d.stage !== "wygrana" && d.stage !== "przegrana";
 
 type Kind = "done" | "planned" | "overdue" | "audit";
-interface CalEvent { key: string; date: string; kind: Kind; label: string; dealId?: string | undefined; activityId?: string | undefined }
+interface CalEvent { key: string; date: string; kind: Kind; label: string; activityType?: ActivityType; dealId?: string | undefined; activityId?: string | undefined }
 const KIND_CLS: Record<Kind, string> = {
   done: "bg-ev-done/15 text-ev-done border-ev-done/40",
   planned: "bg-ev-planned/15 text-ev-planned border-ev-planned/40",
   overdue: "bg-ev-overdue/15 text-ev-overdue border-ev-overdue/40",
   audit: "bg-ev-audit/15 text-ev-audit border-ev-audit/40",
+};
+const OUTCOME_META: Record<CallOutcome, { icon: LucideIcon; cls: string }> = {
+  audyt: { icon: CheckCircle2, cls: "text-ev-done" },
+  ponowny: { icon: Calendar, cls: "text-ev-audit" },
+  oferta: { icon: FileText, cls: "text-ev-audit" },
+  odrzucony: { icon: XCircle, cls: "text-ev-overdue" },
+  nie_odbiera: { icon: PhoneOff, cls: "text-ev-planned" },
 };
 
 function Page() {
@@ -74,11 +81,10 @@ function Page() {
   const events = useMemo<CalEvent[]>(() => {
     const ev: CalEvent[] = [];
     for (const d of ds.deals) {
-      if (OPEN(d) && d.followUpDate) ev.push({ key: "f" + d.id, date: d.followUpDate, kind: d.followUpDate < today ? "overdue" : "planned", label: `📞 ${companyName(d.company_id)}`, dealId: d.id });
+      if (OPEN(d) && d.followUpDate) ev.push({ key: "f" + d.id, date: d.followUpDate, kind: d.followUpDate < today ? "overdue" : "planned", activityType: "call", label: companyName(d.company_id), dealId: d.id });
     }
     for (const a of as.activities) {
-      if (a.type === "call") ev.push({ key: a.id, date: a.date, kind: "done", label: `✔ ${a.title}`, activityId: a.id, dealId: a.deal_id });
-      else ev.push({ key: a.id, date: a.date, kind: a.done ? "done" : "audit", label: `${a.type === "audit" ? "🏭" : "🤝"} ${a.title}`, activityId: a.id, dealId: a.deal_id });
+      ev.push({ key: a.id, date: a.date, kind: a.done || a.type === "call" ? "done" : "audit", activityType: a.type, label: a.title, activityId: a.id, dealId: a.deal_id });
     }
     return ev;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,7 +194,9 @@ function Page() {
                   <span className="font-medium">{a.title}</span>
                   <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("pl-PL", { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
-                {o && <div className="mt-1 text-xs font-medium">{o.emoji} {o.label}</div>}
+                {o && a.outcome && (() => { const m = OUTCOME_META[a.outcome]; const Icon = m.icon; return (
+                  <div className={cn("mt-1 flex items-center gap-1.5 text-xs font-medium", m.cls)}><Icon className="h-3.5 w-3.5 shrink-0" />{o.label}</div>
+                ); })()}
                 {a.note && <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{a.note}</p>}
               </div>
             );
@@ -222,6 +230,15 @@ function Page() {
         }} />
     </div>
   );
+}
+
+function EventGlyph({ e, className }: { e: CalEvent; className?: string }) {
+  const t = e.activityType;
+  const icon = e.kind === "planned" || e.kind === "overdue" || t === "call"
+    ? (e.kind === "done" ? CheckCircle2 : Phone)
+    : t === "meeting" ? Handshake : Factory;
+  const Icon = icon;
+  return <Icon className={className} />;
 }
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -289,7 +306,9 @@ function CalendarView({ mode, setMode, cursor, setCursor, today, events, onDrop,
                 {list.slice(0, mode === "month" ? 3 : 20).map((e) => (
                   <div key={e.key} draggable={e.kind !== "done"} onDragStart={() => setDrag(e)}
                     onClick={(ev) => { ev.stopPropagation(); onEventClick(e); }}
-                    title={e.label} className={cn("truncate rounded border px-1 py-0.5 text-[11px]", KIND_CLS[e.kind], e.kind !== "done" && "cursor-grab")}>{e.label}</div>
+                    title={e.label} className={cn("flex items-center gap-1 truncate rounded border px-1 py-0.5 text-[11px]", KIND_CLS[e.kind], e.kind !== "done" && "cursor-grab")}>
+                    <EventGlyph e={e} className="h-3 w-3 shrink-0" />{e.label}
+                  </div>
                 ))}
                 {mode === "month" && list.length > 3 && <div className="text-[11px] text-muted-foreground">+{list.length - 3} więcej</div>}
               </div>
@@ -343,9 +362,14 @@ function CallLogDialog({ open, dealId, onClose, deals, companyName, today, onSav
           <div className="space-y-2">
             <Label>Szybka Kwalifikacja</Label>
             <div className="grid gap-2">
-              {OUTCOMES.map((o) => (
-                <Button key={o.id} type="button" variant={outcome === o.id ? "default" : "outline"} className="justify-start" onClick={() => setOutcome(o.id)}>{o.emoji} {o.label}</Button>
-              ))}
+              {OUTCOMES.map((o) => {
+                const m = OUTCOME_META[o.id]; const Icon = m.icon;
+                return (
+                  <Button key={o.id} type="button" variant={outcome === o.id ? "default" : "outline"} className="justify-start" onClick={() => setOutcome(o.id)}>
+                    <Icon className={cn("mr-2 h-4 w-4", outcome === o.id ? "" : m.cls)} />{o.label}
+                  </Button>
+                );
+              })}
             </div>
           </div>
           {needsDate && (
@@ -371,8 +395,8 @@ function DayDialog({ date, onClose, deals, companyName, onSave }: {
         {deals.length === 0 ? <p className="text-sm text-muted-foreground">Brak otwartych szans w lejku — dodaj je najpierw w Lejku Sprzedaży.</p> : (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              {([["followup", "📞 Follow-up"], ["audit", "🏭 Audyt Gemba"], ["meeting", "🤝 Spotkanie"]] as const).map(([k, l]) => (
-                <Button key={k} size="sm" variant={type === k ? "default" : "outline"} onClick={() => setType(k)}>{l}</Button>
+              {([["followup", "Follow-up", Phone], ["audit", "Audyt Gemba", Factory], ["meeting", "Spotkanie", Handshake]] as const).map(([k, l, Icon]) => (
+                <Button key={k} size="sm" variant={type === k ? "default" : "outline"} onClick={() => setType(k)}><Icon className="mr-1 h-3.5 w-3.5" />{l}</Button>
               ))}
             </div>
             <DealSelect deals={deals} value={sel} onChange={setSel} companyName={companyName} />

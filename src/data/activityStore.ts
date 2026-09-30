@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 
 export type ActivityType = "call" | "audit" | "meeting";
 export type CallOutcome = "audyt" | "ponowny" | "oferta" | "odrzucony" | "nie_odbiera";
-export const OUTCOMES: { id: CallOutcome; label: string; emoji: string }[] = [
-  { id: "audyt", label: "Sukces / Umawiam Audyt Gemba", emoji: "✅" },
-  { id: "ponowny", label: "Ponowny kontakt", emoji: "🔁" },
-  { id: "oferta", label: "Oferta wysłana", emoji: "📨" },
-  { id: "odrzucony", label: "Nie zainteresowany / Zły profil", emoji: "⛔" },
-  { id: "nie_odbiera", label: "Nie odbiera", emoji: "📵" },
+export const OUTCOMES: { id: CallOutcome; label: string }[] = [
+  { id: "audyt", label: "Sukces / Umawiam Audyt Gemba" },
+  { id: "ponowny", label: "Ponowny kontakt" },
+  { id: "oferta", label: "Oferta wysłana" },
+  { id: "odrzucony", label: "Nie zainteresowany / Zły profil" },
+  { id: "nie_odbiera", label: "Nie odbiera" },
 ];
 export const outcomeLabel = (o?: CallOutcome) => OUTCOMES.find((x) => x.id === o);
 
