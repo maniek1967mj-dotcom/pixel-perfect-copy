@@ -8,6 +8,7 @@ const D_KEY = "crm.deals.v2";
 const IMPORTED_KEY = "crm.importedLeads.v2";
 const O_KEY = "crm.orders.v1";
 const LOG_KEY = "crm.importedLeadLog.v2";
+const A_KEY = "crm.activities.v1";
 
 const read = <T,>(key: string): T[] => {
   try { return JSON.parse(localStorage.getItem(key) ?? "[]") as T[]; } catch { return []; }
@@ -33,6 +34,7 @@ export const exportBackupJson = () => {
     orders: read<unknown>(O_KEY),
     importedLeads: read<string>(IMPORTED_KEY),
     importedLeadLog: read<unknown>(LOG_KEY),
+    activities: read<unknown>(A_KEY),
   };
   download(`fabryka-smart-crm-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data, null, 2), "application/json");
 };
@@ -52,6 +54,7 @@ export const importBackupJson = (file: File): Promise<{ companies: number; conta
         localStorage.setItem(D_KEY, JSON.stringify(data.deals));
         localStorage.setItem(O_KEY, JSON.stringify(Array.isArray(data.orders) ? data.orders : []));
         if (Array.isArray(data.importedLeads)) localStorage.setItem(IMPORTED_KEY, JSON.stringify(data.importedLeads));
+        localStorage.setItem(A_KEY, JSON.stringify(Array.isArray(data.activities) ? data.activities : []));
         if (Array.isArray(data.importedLeadLog)) localStorage.setItem(LOG_KEY, JSON.stringify(data.importedLeadLog));
         resolve({ companies: data.companies.length, contacts: data.contacts.length, deals: data.deals.length });
       } catch (e) {
