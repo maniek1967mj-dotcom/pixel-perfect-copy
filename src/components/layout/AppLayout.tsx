@@ -48,8 +48,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-3">
             <Button variant="ghost" size="icon" aria-label="Powiadomienia"><Bell className="h-5 w-5" /></Button>
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-semibold text-foreground">MJ</div>
-            <span className="hidden text-sm font-medium sm:inline">Mariusz Janeczek</span>
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-semibold text-foreground">FS</div>
+            <span className="hidden text-sm font-medium sm:inline">Fabryka Smart</span>
           </div>
         </header>
         <main className="p-6 lg:p-8">{children}</main>
