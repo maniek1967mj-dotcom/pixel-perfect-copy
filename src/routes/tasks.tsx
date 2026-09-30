@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Calendar, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Download, Factory, FileText, Handshake, List, Phone, PhoneCall, PhoneOff, Plus, Target, XCircle, type LucideIcon } from "lucide-react";
 import { useCompanyStore } from "@/data/companyStore";
 import { useDealStore, type Deal } from "@/data/dealStore";
-import { useActivityStore, OUTCOMES, outcomeLabel, type Activity, type CallOutcome } from "@/data/activityStore";
+import { useActivityStore, OUTCOMES, outcomeLabel, type Activity, type ActivityType, type CallOutcome } from "@/data/activityStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -230,6 +230,15 @@ function Page() {
         }} />
     </div>
   );
+}
+
+function EventGlyph({ e, className }: { e: CalEvent; className?: string }) {
+  const t = e.activityType;
+  const icon = e.kind === "planned" || e.kind === "overdue" || t === "call"
+    ? (e.kind === "done" ? CheckCircle2 : Phone)
+    : t === "meeting" ? Handshake : Factory;
+  const Icon = icon;
+  return <Icon className={className} />;
 }
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
