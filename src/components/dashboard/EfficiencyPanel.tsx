@@ -102,7 +102,7 @@ export function EfficiencyPanel({ deals }: { deals: Deal[] }) {
         </Card>
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Pełny Lejek Konwersji</div>
-          <div className="mt-2 flex items-center gap-1 text-sm font-semibold text-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-1 text-sm font-semibold text-foreground">
             <span>{doneCalls.length} tel.</span><ArrowRight className="h-3 w-3 text-muted-foreground" />
             <span>{audits} audyty <span className="text-xs text-muted-foreground">({auditPct}%)</span></span><ArrowRight className="h-3 w-3 text-muted-foreground" />
             <span>{phoneOrders.length} zam. <span className="text-xs text-muted-foreground">({orderPct}%)</span></span>
