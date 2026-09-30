@@ -57,7 +57,7 @@ type FormState = Omit<Deal, "id" | "created_at">;
 const emptyForm = (): FormState => ({ title: "", company_id: "", contact_id: "", stage: "sygnal", value: 0, currency: "PLN", app_type: "Fabryka Smart", expected_close_date: "", notes: "" });
 
 function extras(d: Deal): Partial<FormState> {
-  const keys = ["fact", "trigger", "hypothesis", "verificationQuestion", "firstAction", "scoring", "timeWindow", "priority", "suggestedOffer", "followUpDate", "country", "region", "languageNote", "remoteFirst"] as const;
+  const keys = ["fact", "trigger", "hypothesis", "verificationQuestion", "firstAction", "scoring", "timeWindow", "priority", "suggestedOffer", "followUpDate", "country", "region", "languageNote", "remoteFirst", "sourceUrl"] as const;
   const o: Record<string, unknown> = {};
   for (const k of keys) if (d[k] !== undefined) o[k] = d[k];
   return o as Partial<FormState>;
