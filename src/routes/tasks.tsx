@@ -194,7 +194,9 @@ function Page() {
                   <span className="font-medium">{a.title}</span>
                   <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("pl-PL", { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
-                {o && <div className="mt-1 text-xs font-medium">{o.emoji} {o.label}</div>}
+                {o && a.outcome && (() => { const m = OUTCOME_META[a.outcome]; const Icon = m.icon; return (
+                  <div className={cn("mt-1 flex items-center gap-1.5 text-xs font-medium", m.cls)}><Icon className="h-3.5 w-3.5 shrink-0" />{o.label}</div>
+                ); })()}
                 {a.note && <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{a.note}</p>}
               </div>
             );
@@ -295,7 +297,9 @@ function CalendarView({ mode, setMode, cursor, setCursor, today, events, onDrop,
                 {list.slice(0, mode === "month" ? 3 : 20).map((e) => (
                   <div key={e.key} draggable={e.kind !== "done"} onDragStart={() => setDrag(e)}
                     onClick={(ev) => { ev.stopPropagation(); onEventClick(e); }}
-                    title={e.label} className={cn("truncate rounded border px-1 py-0.5 text-[11px]", KIND_CLS[e.kind], e.kind !== "done" && "cursor-grab")}>{e.label}</div>
+                    title={e.label} className={cn("flex items-center gap-1 truncate rounded border px-1 py-0.5 text-[11px]", KIND_CLS[e.kind], e.kind !== "done" && "cursor-grab")}>
+                    <EventGlyph e={e} className="h-3 w-3 shrink-0" />{e.label}
+                  </div>
                 ))}
                 {mode === "month" && list.length > 3 && <div className="text-[11px] text-muted-foreground">+{list.length - 3} więcej</div>}
               </div>
@@ -349,9 +353,14 @@ function CallLogDialog({ open, dealId, onClose, deals, companyName, today, onSav
           <div className="space-y-2">
             <Label>Szybka Kwalifikacja</Label>
             <div className="grid gap-2">
-              {OUTCOMES.map((o) => (
-                <Button key={o.id} type="button" variant={outcome === o.id ? "default" : "outline"} className="justify-start" onClick={() => setOutcome(o.id)}>{o.emoji} {o.label}</Button>
-              ))}
+              {OUTCOMES.map((o) => {
+                const m = OUTCOME_META[o.id]; const Icon = m.icon;
+                return (
+                  <Button key={o.id} type="button" variant={outcome === o.id ? "default" : "outline"} className="justify-start" onClick={() => setOutcome(o.id)}>
+                    <Icon className={cn("mr-2 h-4 w-4", outcome === o.id ? "" : m.cls)} />{o.label}
+                  </Button>
+                );
+              })}
             </div>
           </div>
           {needsDate && (
@@ -377,8 +386,8 @@ function DayDialog({ date, onClose, deals, companyName, onSave }: {
         {deals.length === 0 ? <p className="text-sm text-muted-foreground">Brak otwartych szans w lejku — dodaj je najpierw w Lejku Sprzedaży.</p> : (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              {([["followup", "📞 Follow-up"], ["audit", "🏭 Audyt Gemba"], ["meeting", "🤝 Spotkanie"]] as const).map(([k, l]) => (
-                <Button key={k} size="sm" variant={type === k ? "default" : "outline"} onClick={() => setType(k)}>{l}</Button>
+              {([["followup", "Follow-up", Phone], ["audit", "Audyt Gemba", Factory], ["meeting", "Spotkanie", Handshake]] as const).map(([k, l, Icon]) => (
+                <Button key={k} size="sm" variant={type === k ? "default" : "outline"} onClick={() => setType(k)}><Icon className="mr-1 h-3.5 w-3.5" />{l}</Button>
               ))}
             </div>
             <DealSelect deals={deals} value={sel} onChange={setSel} companyName={companyName} />
