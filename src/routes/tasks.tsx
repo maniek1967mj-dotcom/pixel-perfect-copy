@@ -326,10 +326,10 @@ function CallLogDialog({ open, dealId, onClose, deals, companyName, today, onSav
   if (key !== lastKey) { setLastKey(key); setSel(dealId); setNote(""); setOutcome(null); setDate(addDays(today, 3)); }
   const needsDate = outcome === "audyt" || outcome === "ponowny";
   const submit = () => {
-    if (!sel) return toast.error("Wybierz szansę sprzedaży");
-    if (!note.trim()) return toast.error("Notatka jest wymagana");
-    if (!outcome) return toast.error("Wybierz wynik rozmowy");
-    if (needsDate && !date) return toast.error("Wybierz datę");
+    if (!sel) { toast.error("Wybierz szansę sprzedaży"); return; }
+    if (!note.trim()) { toast.error("Notatka jest wymagana"); return; }
+    if (!outcome) { toast.error("Wybierz wynik rozmowy"); return; }
+    if (needsDate && !date) { toast.error("Wybierz datę"); return; }
     onSave(sel, note.trim(), outcome, date);
   };
   return (
