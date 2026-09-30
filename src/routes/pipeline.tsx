@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRightLeft, Calendar, ChevronDown, Globe, Kanban, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowRightLeft, Calendar, ChevronDown, ExternalLink, Globe, Kanban, Mail, MoreHorizontal, Pencil, Phone, Plus, Trash2, X } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { useCompanyStore } from "@/data/companyStore";
 import { createOrderFromDeal } from "@/data/orderStore";
@@ -79,6 +79,7 @@ function Page() {
   const [dragOver, setDragOver] = useState<Stage | null>(null);
 
   const companyName = (id: string) => cs.companies.find((c) => c.id === id)?.name ?? "—";
+  const contactOf = (id?: string) => (id ? cs.contacts.find((c) => c.id === id) : undefined);
   const visible = useMemo(
     () => ds.deals.filter((d) => (appF === "all" || d.app_type === appF) && (compF === "all" || d.company_id === compF) && (countryF === "all" || (d.country ?? "PL") === countryF) && (twF === "all" || d.timeWindow === twF)),
     [ds.deals, appF, compF, countryF, twF],
