@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ClipboardList, Trash2 } from "lucide-react";
+import { ClipboardList, Download, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { useOrderStore, ORDER_STATUSES, margin, marginPct, type Order, type OrderStatus } from "@/data/orderStore";
+import { exportOrdersCsv } from "@/utils/backup";
 import { formatMoney, toPLN } from "@/data/dealStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,9 +109,22 @@ function Page() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Zamówienia</h1>
-        <p className="text-sm text-muted-foreground">Rejestr zamówień i kosztów – tworzony automatycznie z wygranych szans w lejku</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Zamówienia</h1>
+          <p className="text-sm text-muted-foreground">Rejestr zamówień i kosztów – tworzony automatycznie z wygranych szans w lejku</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (orders.length === 0) { toast.error("Brak zamówień do wyeksportowania"); return; }
+            exportOrdersCsv(orders);
+            toast.success(`Wyeksportowano ${orders.length} zamówień do CSV`);
+          }}
+        >
+          <Download className="h-4 w-4" />
+          Eksportuj Zamówienia do CSV
+        </Button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
