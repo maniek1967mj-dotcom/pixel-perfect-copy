@@ -81,20 +81,39 @@ create table if not exists public.deals (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  order_number varchar(30) not null unique,
+  deal_id uuid references public.deals(id) on delete set null,
+  company_id uuid references public.companies(id) on delete set null,
+  title text not null,
+  client text,
+  sell_value numeric(14,2) not null default 0,
+  currency varchar(10) not null default 'PLN' check (currency in ('PLN','CZK','EUR')),
+  cost_value numeric(14,2) not null default 0,
+  margin numeric(14,2) generated always as (sell_value - cost_value) stored,
+  status varchar(20) not null default 'ZAMÓWIONE' check (status in ('ZAMÓWIONE','W REALIZACJI','ZREALIZOWANE')),
+  order_date date not null default current_date,
+  delivery_date date,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists contacts_company_idx on public.contacts(company_id);
 create index if not exists deals_company_idx on public.deals(company_id);
 create index if not exists deals_stage_idx on public.deals(stage);
 
-grant select, insert, update, delete on public.companies, public.contacts, public.deals to authenticated;
-grant all on public.companies, public.contacts, public.deals to service_role;
+grant select, insert, update, delete on public.companies, public.contacts, public.deals, public.orders to authenticated;
+grant all on public.companies, public.contacts, public.deals, public.orders to service_role;
 
 alter table public.companies enable row level security;
 alter table public.contacts enable row level security;
 alter table public.deals enable row level security;
+alter table public.orders enable row level security;
 
 create policy "auth all companies" on public.companies for all to authenticated using (true) with check (true);
 create policy "auth all contacts" on public.contacts for all to authenticated using (true) with check (true);
 create policy "auth all deals" on public.deals for all to authenticated using (true) with check (true);
+create policy "auth all orders" on public.orders for all to authenticated using (true) with check (true);
 `;
 
 const fitRank = (f?: string) => {
@@ -214,7 +233,7 @@ function Page() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Skrypt SQL dla Supabase</DialogTitle>
-            <DialogDescription>Tabele companies, contacts i deals – gotowe do uruchomienia po podłączeniu bazy.</DialogDescription>
+            <DialogDescription>Tabele companies, contacts, deals i orders – gotowe do uruchomienia po podłączeniu bazy.</DialogDescription>
           </DialogHeader>
           <pre className="max-h-[60vh] overflow-auto rounded-md bg-muted p-3 font-mono text-xs text-foreground">{SQL}</pre>
           <Button onClick={() => copy(SQL, "Skopiowano SQL")}><Copy className="mr-1 h-4 w-4" />Kopiuj SQL</Button>

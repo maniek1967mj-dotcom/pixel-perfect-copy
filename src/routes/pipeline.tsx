@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowRightLeft, Calendar, ChevronDown, Globe, Kanban, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { useCompanyStore } from "@/data/companyStore";
+import { createOrderFromDeal } from "@/data/orderStore";
 import { useDealStore, STAGES, DEAL_APP_TYPES, COUNTRIES, CURRENCIES, TIME_WINDOWS, PRIORITIES, OFFERS, flagOf, formatMoney, toPLN, type Deal, type Stage, type DealAppType, type Currency, type Country, type Priority, type TimeWindow, type SuggestedOffer } from "@/data/dealStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,7 +102,8 @@ function Page() {
     if (Object.keys(e).length) return;
     const data: FormState = { ...form, title: form.title.trim(), value };
     if (!data.contact_id) delete data.contact_id;
-    ds.upsert(data, editId);
+    const id = ds.upsert(data, editId);
+    if (data.stage === "wygrana") orderFor({ ...data, id, created_at: new Date().toISOString() });
     toast.success(editId ? "Zapisano szansę sprzedaży" : "Dodano nową szansę sprzedaży");
     setOpen(false);
   };
@@ -109,6 +111,11 @@ function Page() {
     if (d.stage === stage) return;
     ds.move(d.id, stage);
     toast.success(`Przeniesiono do: ${STAGES.find((s) => s.id === stage)?.label}`);
+    if (stage === "wygrana") orderFor({ ...d, stage });
+  };
+  const orderFor = (d: Deal) => {
+    const o = createOrderFromDeal(d, companyName(d.company_id));
+    if (o) toast.success(`Utworzono zamówienie ${o.orderNumber}`);
   };
   const del = (d: Deal) => {
     if (!confirm(`Usunąć szansę „${d.title}”?`)) return;

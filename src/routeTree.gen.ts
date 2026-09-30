@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CompaniesRouteImport } from './routes/companies'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as ImporterRouteImport } from './routes/importer'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as TasksRouteImport } from './routes/tasks'
@@ -37,6 +38,11 @@ const ImporterRoute = ImporterRouteImport.update({
   path: '/importer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PipelineRoute = PipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/companies': typeof CompaniesRoute
   '/contacts': typeof ContactsRoute
   '/importer': typeof ImporterRoute
+  '/orders': typeof OrdersRoute
   '/pipeline': typeof PipelineRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/companies': typeof CompaniesRoute
   '/contacts': typeof ContactsRoute
   '/importer': typeof ImporterRoute
+  '/orders': typeof OrdersRoute
   '/pipeline': typeof PipelineRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/companies': typeof CompaniesRoute
   '/contacts': typeof ContactsRoute
   '/importer': typeof ImporterRoute
+  '/orders': typeof OrdersRoute
   '/pipeline': typeof PipelineRoute
   '/settings': typeof SettingsRoute
   '/tasks': typeof TasksRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/companies'
     | '/contacts'
     | '/importer'
+    | '/orders'
     | '/pipeline'
     | '/settings'
     | '/tasks'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/companies'
     | '/contacts'
     | '/importer'
+    | '/orders'
     | '/pipeline'
     | '/settings'
     | '/tasks'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/companies'
     | '/contacts'
     | '/importer'
+    | '/orders'
     | '/pipeline'
     | '/settings'
     | '/tasks'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   CompaniesRoute: typeof CompaniesRoute
   ContactsRoute: typeof ContactsRoute
   ImporterRoute: typeof ImporterRoute
+  OrdersRoute: typeof OrdersRoute
   PipelineRoute: typeof PipelineRoute
   SettingsRoute: typeof SettingsRoute
   TasksRoute: typeof TasksRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImporterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pipeline': {
       id: '/pipeline'
       path: '/pipeline'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompaniesRoute: CompaniesRoute,
   ContactsRoute: ContactsRoute,
   ImporterRoute: ImporterRoute,
+  OrdersRoute: OrdersRoute,
   PipelineRoute: PipelineRoute,
   SettingsRoute: SettingsRoute,
   TasksRoute: TasksRoute,
