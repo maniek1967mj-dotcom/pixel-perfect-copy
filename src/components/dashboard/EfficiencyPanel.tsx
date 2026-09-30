@@ -73,8 +73,8 @@ export function EfficiencyPanel({ deals }: { deals: Deal[] }) {
     };
   });
   const maxBar = Math.max(1, ...week.flatMap((w) => [w.planned, w.done, w.won]));
-  const bestDay = week.reduce((b, w) => (w.won + w.done > b.won + b.done ? w : b), week[0]);
-  const weekAudits = activities.filter((a) => a.date >= week[0].day && a.date <= week[4].day && a.done && (a.outcome === "audyt" || a.type === "audit")).length;
+  const bestDay = week.reduce((b, w) => (w.won + w.done > b.won + b.done ? w : b), week[0]!);
+  const weekAudits = activities.filter((a) => a.date >= week[0]!.day && a.date <= week[4]!.day && a.done && (a.outcome === "audyt" || a.type === "audit")).length;
 
   // Tips
   const staleProposals = deals.filter((d) => d.stage === "propozycja" && !d.followUpDate).length;
@@ -151,7 +151,7 @@ export function EfficiencyPanel({ deals }: { deals: Deal[] }) {
                     <div key={i} title={String(v)} className="w-1/4 rounded-t" style={{ height: `${((v as number) / maxBar) * 100}%`, minHeight: 2, background: c as string, opacity: i === 0 ? 0.4 : 1 }} />
                   ))}
                 </div>
-                <span className={`text-xs ${w.day === bestDay.day && w.done + w.won > 0 ? "font-bold text-primary" : "text-muted-foreground"}`}>{w.label}</span>
+                <span className={`text-xs ${w.day === bestDay?.day && w.done + w.won > 0 ? "font-bold text-primary" : "text-muted-foreground"}`}>{w.label}</span>
               </div>
             ))}
           </div>
