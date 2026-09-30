@@ -1,5 +1,6 @@
 import type { Company, Contact } from "@/types/crm";
 import type { Deal } from "@/data/dealStore";
+import type { Order } from "@/data/orderStore";
 
 const C_KEY = "crm.companies.v4";
 const P_KEY = "crm.contacts.v4";
@@ -83,4 +84,28 @@ export const exportCsv = () => {
   );
   download(`crm-firmy-${new Date().toISOString().slice(0, 10)}.csv`, companiesCsv, "text/csv;charset=utf-8");
   download(`crm-szanse-${new Date().toISOString().slice(0, 10)}.csv`, dealsCsv, "text/csv;charset=utf-8");
+};
+
+export const exportOrdersCsv = (orders: Order[]) => {
+  const csv = toCsv(
+    ["Numer Zlecenia", "Klient", "Nazwa Szansy", "Wartość Sprzedaży", "Waluta", "Koszt Realizacji", "Marża (PLN/CZK/EUR)", "Marża (%)", "Status", "Data Zamówienia", "Data Dostawy"],
+    orders.map((o) => {
+      const m = o.sellValue - (o.costValue || 0);
+      const pct = o.sellValue > 0 ? (m / o.sellValue) * 100 : 0;
+      return [
+        o.orderNumber,
+        o.client,
+        o.title,
+        o.sellValue,
+        o.currency,
+        o.costValue || 0,
+        m,
+        pct.toFixed(1).replace(".", ","),
+        o.status,
+        o.orderDate,
+        o.deliveryDate,
+      ];
+    }),
+  );
+  download(`crm-zamowienia-${new Date().toISOString().slice(0, 10)}.csv`, csv, "text/csv;charset=utf-8");
 };
