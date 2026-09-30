@@ -307,6 +307,34 @@ function Page() {
             <DialogDescription>Szczegóły oferty i etap w lejku.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
+            {(() => {
+              const ct = contactOf(form.contact_id);
+              const url = form.sourceUrl ?? (editId ? ds.deals.find((x) => x.id === editId)?.sourceUrl : undefined);
+              if (!ct && !url) return null;
+              return (
+                <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-primary">Szybki Kontakt</div>
+                  {ct && <div className="text-sm font-semibold text-foreground">{ct.first_name} {ct.last_name}{ct.role ? <span className="ml-1 text-xs font-normal text-muted-foreground">· {ct.role}</span> : ""}</div>}
+                  <div className="flex flex-wrap gap-2">
+                    {ct?.phone && (
+                      <Button asChild size="sm" className="gap-1.5">
+                        <a href={`tel:${ct.phone.replace(/\s/g, "")}`}><Phone className="h-4 w-4" />Zadzwoń: {ct.phone}</a>
+                      </Button>
+                    )}
+                    {ct?.email && (
+                      <Button asChild size="sm" variant="outline" className="gap-1.5">
+                        <a href={`mailto:${ct.email}`}><Mail className="h-4 w-4" />{ct.email}</a>
+                      </Button>
+                    )}
+                    {url && (
+                      <Button asChild size="sm" variant="outline" className="gap-1.5">
+                        <a href={url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" />Otwórz Ogłoszenie</a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
             <div className="grid gap-1.5">
               <Label htmlFor="d-title">Tytuł szansy *</Label>
               <Input id="d-title" maxLength={150} placeholder="np. Audyt i Wdrożenie Systemu Smart" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
