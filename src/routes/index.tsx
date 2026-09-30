@@ -57,10 +57,27 @@ create table if not exists public.deals (
   stage text not null default 'sygnal'
     check (stage in ('sygnal','kontakt','audyt_gemba','propozycja','negocjacje','wygrana','przegrana')),
   value numeric(14,2) not null default 0,
-  currency text not null default 'PLN' check (currency in ('PLN','EUR')),
+  currency varchar(10) not null default 'PLN' check (currency in ('PLN','CZK','EUR')),
   app_type text not null default 'Inne',
   expected_close_date date,
   notes text,
+  fact text,
+  trigger text,
+  hypothesis text,
+  verification_question text,
+  first_action text,
+  score_t int check (score_t between 0 and 5),
+  score_p int check (score_p between 0 and 5),
+  score_f int check (score_f between 0 and 5),
+  score_a int check (score_a between 0 and 5),
+  time_window varchar(50),
+  priority varchar(10),
+  suggested_offer varchar(50),
+  follow_up_date date,
+  country varchar(10) not null default 'PL',
+  region varchar(100),
+  language_note text,
+  remote_first boolean default false,
   created_at timestamptz not null default now()
 );
 

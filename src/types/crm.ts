@@ -7,6 +7,8 @@ export interface Company {
   industry: string;
   size: string;
   machine_park?: string;
+  country?: "PL" | "CZ" | "SK";
+  region?: string;
   app_potential: AppPotential[];
   created_at: string;
   updated_at: string;
