@@ -30,7 +30,7 @@ export function importLead(l: ParsedLead) {
       ...company,
       industry: company.industry || l.industry,
       country: company.country ?? l.country ?? "PL",
-      region: company.region || l.region,
+      region: company.region || l.region || "",
       app_potential: company.app_potential.includes(potential) ? company.app_potential : [...company.app_potential, potential],
       updated_at: now,
     };
