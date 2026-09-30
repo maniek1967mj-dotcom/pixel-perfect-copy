@@ -13,6 +13,8 @@ export interface ParsedLead {
   fit_score?: string;
   source_url?: string;
   suggested_app: SuggestedApp;
+  lead_type: "ZATRUDNIENIE / KONSULTING" | "APLIKACJA A1";
+  suggested_offer: "INTERIM / KIEROWNIK / AUDYT" | "FABRYKA SMART A1";
   // AI Opportunity Hunter
   trigger?: string;
   verification_question?: string;
@@ -58,10 +60,10 @@ const HEADER_MAP: [RegExp, Field][] = [
   [/wartosc|value|budzet/, "value"],
   [/^offer|oferta|suggested offer/, "offer"],
   [/hipotez|bol|problem|pain/, "hypothesis_pain"],
-  [/fakt|sygnal|signal|zdarzenie/, "signal_fact"],
-  [/firma|spolka|company|nazwa/, "company_name"],
+  [/rekomendacja|fakt|sygnal|signal|zdarzenie/, "signal_fact"],
+  [/firma|podmiot|spolka|company|nazwa/, "company_name"],
   [/lokaliz|miasto|location|siedziba/, "location"],
-  [/branz|sektor|industry/, "industry"],
+  [/^rola|zlecenie|branz|sektor|industry/, "industry"],
   [/kontakt|namiar|osoba|decydent|contact/, "contact_person"],
   [/fit|dopasow|sila|ocena|score|scoring/, "fit_score"],
   [/link|zrodl|url|source/, "source_url"],
