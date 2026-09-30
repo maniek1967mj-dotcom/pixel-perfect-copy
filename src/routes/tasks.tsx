@@ -202,11 +202,11 @@ function Page() {
           const title = `${companyName(d.company_id)} — ${d.title}`;
           as.add({ type: "call", deal_id: d.id, title, date: today, done: true, note, outcome, wasScheduled: !!d.followUpDate && d.followUpDate <= today });
           if (outcome === "audyt") {
-            ds.patch(d.id, { stage: "audyt_gemba", followUpDate: undefined });
+            ds.patch(d.id, { stage: "audyt_gemba", followUpDate: "" });
             as.add({ type: "audit", deal_id: d.id, title: `Audyt Gemba: ${companyName(d.company_id)}`, date, done: false });
           } else if (outcome === "ponowny") ds.patch(d.id, { followUpDate: date });
           else if (outcome === "oferta") ds.patch(d.id, { stage: "propozycja", followUpDate: addDays(today, 3) });
-          else if (outcome === "odrzucony") ds.patch(d.id, { stage: "przegrana", followUpDate: undefined });
+          else if (outcome === "odrzucony") ds.patch(d.id, { stage: "przegrana", followUpDate: "" });
           else ds.patch(d.id, { followUpDate: addDays(today, 1) });
           toast.success("Zarejestrowano rozmowę");
           setLogDeal(null);
@@ -248,7 +248,7 @@ function CalendarView({ mode, setMode, cursor, setCursor, today, events, onDrop,
     for (let i = 0; i < 42; i++) days.push(addDays(start, i));
   }
   const month = c.getMonth();
-  const title = mode === "week" ? `${fmtDay(days[0])} – ${fmtDay(days[6])}` : c.toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
+  const title = mode === "week" ? `${fmtDay(days[0]!)} – ${fmtDay(days[6]!)}` : c.toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
   const step = (dir: number) => {
     if (mode === "week") setCursor(addDays(cursor, 7 * dir));
     else setCursor(ymd(new Date(c.getFullYear(), c.getMonth() + dir, 1, 12)));
