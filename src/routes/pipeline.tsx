@@ -389,11 +389,17 @@ function Page() {
                 </Select>
               </div>
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="d-date">Przewidywana data zamknięcia</Label>
-              <Input id="d-date" type="date" value={form.expected_close_date} onChange={(e) => setForm({ ...form, expected_close_date: e.target.value })} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="d-date">Przewidywana data zamknięcia</Label>
+                <Input id="d-date" type="date" value={form.expected_close_date} onChange={(e) => setForm({ ...form, expected_close_date: e.target.value })} />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="d-follow">Follow-up</Label>
+                <Input id="d-follow" type="date" value={form.followUpDate ?? ""} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} />
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Kraj</Label>
                 <Select value={form.country ?? "PL"} onValueChange={(v) => setForm({ ...form, country: v as Country })}>
@@ -408,47 +414,53 @@ function Page() {
                   <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-1.5">
-                <Label>Okno</Label>
-                <Select value={form.timeWindow ?? ""} onValueChange={(v) => setForm({ ...form, timeWindow: v as TimeWindow })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{TIME_WINDOWS.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label>Sugerowana oferta</Label>
-                <Select value={form.suggestedOffer ?? ""} onValueChange={(v) => setForm({ ...form, suggestedOffer: v as SuggestedOffer })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{OFFERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-follow">Follow-up</Label>
-                <Input id="d-follow" type="date" value={form.followUpDate ?? ""} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-region">Region</Label>
-                <Input id="d-region" maxLength={100} value={form.region ?? ""} onChange={(e) => setForm({ ...form, region: e.target.value })} />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-lang">Język</Label>
-                <Input id="d-lang" maxLength={200} placeholder="Polski" value={form.languageNote ?? ""} onChange={(e) => setForm({ ...form, languageNote: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {(["t", "p", "f", "a"] as const).map((k) => (
-                <div key={k} className="grid gap-1.5">
-                  <Label htmlFor={`d-s-${k}`}>{k.toUpperCase()} (0-5)</Label>
-                  <Input id={`d-s-${k}`} type="number" min={0} max={5} value={form.scoring?.[k] ?? ""} onChange={(e) => {
-                    const v = Math.max(0, Math.min(5, Number(e.target.value) || 0));
-                    setForm({ ...form, scoring: { t: 0, p: 0, f: 0, a: 0, ...form.scoring, [k]: v } });
-                  }} />
+            <div className="rounded-lg border">
+              <button type="button" className="flex w-full items-center justify-between p-3 text-sm font-medium text-muted-foreground" onClick={() => setShowTech((v) => !v)} aria-expanded={showTech}>
+                Pokaż punktację i parametry techniczne
+                <ChevronDown className={`h-4 w-4 transition-transform ${showTech ? "rotate-180" : ""}`} />
+              </button>
+              {showTech && (
+                <div className="grid gap-4 border-t p-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-1.5">
+                      <Label>Okno czasowe</Label>
+                      <Select value={form.timeWindow ?? ""} onValueChange={(v) => setForm({ ...form, timeWindow: v as TimeWindow })}>
+                        <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>{TIME_WINDOWS.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label>Sugerowana oferta</Label>
+                      <Select value={form.suggestedOffer ?? ""} onValueChange={(v) => setForm({ ...form, suggestedOffer: v as SuggestedOffer })}>
+                        <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>{OFFERS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="d-region">Region</Label>
+                      <Input id="d-region" maxLength={100} value={form.region ?? ""} onChange={(e) => setForm({ ...form, region: e.target.value })} />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="d-lang">Język</Label>
+                      <Input id="d-lang" maxLength={200} placeholder="Polski" value={form.languageNote ?? ""} onChange={(e) => setForm({ ...form, languageNote: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(["t", "p", "f", "a"] as const).map((k) => (
+                      <div key={k} className="grid gap-1.5">
+                        <Label htmlFor={`d-s-${k}`}>{k.toUpperCase()} (0-5)</Label>
+                        <Input id={`d-s-${k}`} type="number" min={0} max={5} value={form.scoring?.[k] ?? ""} onChange={(e) => {
+                          const v = Math.max(0, Math.min(5, Number(e.target.value) || 0));
+                          setForm({ ...form, scoring: { t: 0, p: 0, f: 0, a: 0, ...form.scoring, [k]: v } });
+                        }} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
             {([["fact", "Fakt"], ["trigger", "Trigger"], ["hypothesis", "Hipoteza"], ["verificationQuestion", "Pytanie do firmy / Haczyk"], ["firstAction", "Pierwsza akcja"]] as const).map(([k, label]) => (
               <div key={k} className="grid gap-1.5">
