@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { EfficiencyPanel } from "@/components/dashboard/EfficiencyPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/")({
@@ -173,6 +174,8 @@ function Page() {
         <Button asChild><Link to="/importer"><ScanSearch className="mr-1 h-4 w-4" />Wklej Raport Skanera</Link></Button>
         <Button variant="secondary" onClick={() => setSqlOpen(true)}><Database className="mr-1 h-4 w-4" />Pobierz Skrypt SQL dla Supabase</Button>
       </div>
+
+      <EfficiencyPanel deals={deals} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map(({ label, value, sub, icon: Icon, up }) => (
