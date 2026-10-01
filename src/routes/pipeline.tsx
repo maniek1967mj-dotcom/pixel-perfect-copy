@@ -156,7 +156,7 @@ function Page() {
       }
     }
     // Step 3: deal
-    const data: FormState = { ...form, title: form.title.trim(), value, company_id: companyId, contact_id: contactId };
+    const data: FormState = { ...form, title: form.title.trim(), value, company_id: companyId, contact_id: contactId ?? "" };
     if (!data.contact_id) delete data.contact_id;
     const id = ds.upsert(data, editId);
     if (data.stage === "wygrana") {
