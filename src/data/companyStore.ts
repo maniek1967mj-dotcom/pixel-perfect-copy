@@ -49,15 +49,20 @@ export function useCompanyStore() {
   }, []);
 
   const upsertCompany = (data: Omit<Company, "id" | "created_at" | "updated_at">, id?: string) => {
-    if (id) saveCompanies(companies.map((c) => (c.id === id ? { ...c, ...data, updated_at: now() } : c)));
-    else saveCompanies([{ ...data, id: uid(), created_at: now(), updated_at: now() }, ...companies]);
+    if (id) { saveCompanies(companies.map((c) => (c.id === id ? { ...c, ...data, updated_at: now() } : c))); return id; }
+    const nid = uid();
+    saveCompanies([{ ...data, id: nid, created_at: now(), updated_at: now() }, ...companies]);
+    return nid;
   };
   const deleteCompany = (id: string) => {
     saveCompanies(companies.filter((c) => c.id !== id));
     saveContacts(contacts.filter((c) => c.company_id !== id));
   };
-  const addContact = (data: Omit<Contact, "id" | "created_at" | "updated_at">) =>
-    saveContacts([...contacts, { ...data, id: uid(), created_at: now(), updated_at: now() }]);
+  const addContact = (data: Omit<Contact, "id" | "created_at" | "updated_at">) => {
+    const nid = uid();
+    saveContacts([...contacts, { ...data, id: nid, created_at: now(), updated_at: now() }]);
+    return nid;
+  };
 
   const updateContact = (id: string, data: Partial<Omit<Contact, "id" | "created_at">>) =>
     saveContacts(contacts.map((c) => (c.id === id ? { ...c, ...data, updated_at: now() } : c)));
