@@ -567,7 +567,7 @@ function Page() {
             ) : <span />}
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>Anuluj</Button>
-              <Button onClick={submit}>{editId ? "Zapisz zmiany" : "Dodaj szansę"}</Button>
+              <Button onClick={submit}>{editId ? "Zapisz zmiany" : "Zapisz Szansę"}</Button>
             </div>
           </DialogFooter>
         </DialogContent>
