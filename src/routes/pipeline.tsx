@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRightLeft, Calendar, ChevronDown, ExternalLink, Globe, Kanban, Mail, MoreHorizontal, Pencil, Phone, Plus, Trash2, X } from "lucide-react";
+import { ArrowRightLeft, Building2, Calendar, ChevronDown, ExternalLink, Globe, Kanban, Mail, MoreHorizontal, Pencil, Phone, Pin, Plus, Trash2, X, Zap } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { useCompanyStore } from "@/data/companyStore";
 import { createOrderFromDeal } from "@/data/orderStore";
@@ -88,25 +88,82 @@ function Page() {
   const active = visible.filter((d) => d.stage !== "przegrana");
   const activeTotal = active.reduce((s, d) => s + toPLN(d), 0);
 
-  const openAdd = (stage: Stage = "sygnal") => { setEditId(undefined); setForm({ ...emptyForm(), stage }); setValueText(""); setErrors({}); setShowTech(false); setOpen(true); };
+  const [companyText, setCompanyText] = useState("");
+  const [ctName, setCtName] = useState("");
+  const [ctRole, setCtRole] = useState("");
+  const [ctPhone, setCtPhone] = useState("");
+  const [ctEmail, setCtEmail] = useState("");
+  const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  const matchedCompany = companyText.trim() ? cs.companies.find((c) => norm(c.name) === norm(companyText)) : undefined;
+  const companyContacts = matchedCompany ? cs.contacts.filter((c) => c.company_id === matchedCompany.id) : [];
+  const fullName = (c: { first_name: string; last_name: string }) => `${c.first_name} ${c.last_name}`.trim();
+  const loadContact = (id?: string) => {
+    const c = contactOf(id);
+    setCtName(c ? fullName(c) : ""); setCtRole(c?.role ?? ""); setCtPhone(c?.phone ?? ""); setCtEmail(c?.email ?? "");
+  };
+  const onContactName = (v: string) => {
+    setCtName(v);
+    const hit = companyContacts.find((c) => norm(fullName(c)) === norm(v));
+    if (hit) { setCtRole(hit.role); setCtPhone(hit.phone); setCtEmail(hit.email); }
+  };
+
+  const openAdd = (stage: Stage = "sygnal") => { setEditId(undefined); setForm({ ...emptyForm(), stage }); setValueText(""); setErrors({}); setShowTech(false); setCompanyText(""); loadContact(undefined); setOpen(true); };
   const openEdit = (d: Deal) => {
     setEditId(d.id);
     setForm({ title: d.title, company_id: d.company_id, contact_id: d.contact_id ?? "", stage: d.stage, value: d.value, currency: d.currency, app_type: d.app_type, expected_close_date: d.expected_close_date, notes: d.notes ?? "", ...extras(d) });
+    setCompanyText(cs.companies.find((c) => c.id === d.company_id)?.name ?? ""); loadContact(d.contact_id);
     setValueText(String(d.value)); setErrors({}); setShowTech(false); setOpen(true);
+  };
+  const applyTemplate = () => {
+    const f = new Date(); f.setDate(f.getDate() + 3);
+    const c = new Date(); c.setDate(c.getDate() + 30);
+    const name = companyText.trim();
+    setForm({ ...form, title: form.title || (name ? `Rozmowa wstępna – ${name}` : "Rozmowa wstępna – Audyt Gemba"), stage: "kontakt", app_type: "Fabryka Smart", followUpDate: f.toISOString().slice(0, 10), expected_close_date: c.toISOString().slice(0, 10), priority: form.priority ?? "B" });
+    if (!valueText) setValueText("0");
+    toast.success("Uzupełniono pola z krótkiego szablonu");
   };
   const submit = () => {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e["title"] = "Tytuł jest wymagany";
-    if (!form.company_id) e["company_id"] = "Wybierz firmę";
+    if (!companyText.trim()) e["company_id"] = "Wybierz lub wpisz nazwę firmy";
+    if (ctEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ctEmail.trim())) e["email"] = "Nieprawidłowy adres email";
     const value = Number(valueText.replace(/\s/g, "").replace(",", ".") || 0);
     if (!Number.isFinite(value) || value < 0) e["value"] = "Podaj prawidłową kwotę";
     setErrors(e);
     if (Object.keys(e).length) return;
-    const data: FormState = { ...form, title: form.title.trim(), value };
+    // Step 1: company
+    let companyId = matchedCompany?.id;
+    let createdCompany = false;
+    if (!companyId) {
+      companyId = cs.upsertCompany({ name: companyText.trim(), nip: "", industry: "", size: "", country: form.country ?? "PL", app_potential: [form.app_type] });
+      createdCompany = true;
+    }
+    // Step 2: contact
+    let contactId: string | undefined;
+    const anyContact = ctName.trim() || ctPhone.trim() || ctEmail.trim();
+    if (anyContact) {
+      const existing = companyContacts.find((c) => ctName.trim() && norm(fullName(c)) === norm(ctName));
+      if (existing) {
+        contactId = existing.id;
+        const upd: Partial<typeof existing> = {};
+        if (ctPhone.trim() && ctPhone.trim() !== existing.phone) upd.phone = ctPhone.trim();
+        if (ctEmail.trim() && ctEmail.trim() !== existing.email) upd.email = ctEmail.trim();
+        if (ctRole.trim() && ctRole.trim() !== existing.role) upd.role = ctRole.trim();
+        if (Object.keys(upd).length) cs.updateContact(existing.id, upd);
+      } else {
+        const parts = ctName.trim().split(/\s+/);
+        contactId = cs.addContact({ company_id: companyId, first_name: parts[0] ?? "", last_name: parts.slice(1).join(" "), role: ctRole.trim(), is_decision_maker: false, email: ctEmail.trim(), phone: ctPhone.trim() });
+      }
+    }
+    // Step 3: deal
+    const data: FormState = { ...form, title: form.title.trim(), value, company_id: companyId, contact_id: contactId };
     if (!data.contact_id) delete data.contact_id;
     const id = ds.upsert(data, editId);
-    if (data.stage === "wygrana") orderFor({ ...data, id, created_at: new Date().toISOString() });
-    toast.success(editId ? "Zapisano szansę sprzedaży" : "Dodano nową szansę sprzedaży");
+    if (data.stage === "wygrana") {
+      const o = createOrderFromDeal({ ...data, id, created_at: new Date().toISOString() }, companyText.trim());
+      if (o) toast.success(`Utworzono zamówienie ${o.orderNumber}`);
+    }
+    toast.success(editId ? "Zapisano szansę sprzedaży" : createdCompany ? "Dodano szansę i nową firmę" : "Dodano nową szansę sprzedaży");
     setOpen(false);
   };
   const moveTo = (d: Deal, stage: Stage) => {
@@ -123,7 +180,6 @@ function Page() {
     if (!confirm(`Usunąć szansę „${d.title}”?`)) return;
     ds.remove(d.id); toast.success("Usunięto szansę sprzedaży");
   };
-  const companyContacts = cs.contacts.filter((c) => c.company_id === form.company_id);
 
   return (
     <div className="space-y-6">
@@ -335,77 +391,57 @@ function Page() {
                 </div>
               );
             })()}
-            <div className="grid gap-1.5">
-              <Label htmlFor="d-title">Tytuł szansy *</Label>
-              <Input id="d-title" maxLength={150} placeholder="np. Audyt i Wdrożenie Systemu Smart" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              {errors["title"] && <p className="text-xs text-destructive">{errors["title"]}</p>}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            {!editId && (
+              <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={applyTemplate}>
+                <Zap className="h-4 w-4" />Dodaj z krótkiego szablonu
+              </Button>
+            )}
+            <section className="grid gap-3 rounded-lg border p-3">
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><Pin className="h-4 w-4 text-primary" />Dane Szansy</h3>
               <div className="grid gap-1.5">
-                <Label>Firma *</Label>
-                <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v, contact_id: "" })}>
-                  <SelectTrigger><SelectValue placeholder="Wybierz firmę" /></SelectTrigger>
-                  <SelectContent>{cs.companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                </Select>
-                {errors["company_id"] && <p className="text-xs text-destructive">{errors["company_id"]}</p>}
+                <Label htmlFor="d-title">Tytuł szansy *</Label>
+                <Input id="d-title" maxLength={150} placeholder="np. Audyt i Wdrożenie Systemu Smart" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                {errors["title"] && <p className="text-xs text-destructive">{errors["title"]}</p>}
               </div>
-              <div className="grid gap-1.5">
-                <Label>Osoba kontaktowa</Label>
-                <Select value={form.contact_id ?? ""} onValueChange={(v) => setForm({ ...form, contact_id: v })} disabled={!form.company_id}>
-                  <SelectTrigger><SelectValue placeholder={form.company_id ? "Wybierz osobę" : "Najpierw firma"} /></SelectTrigger>
-                  <SelectContent>
-                    {companyContacts.map((c) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}{c.is_decision_maker ? " ★" : ""}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-[1fr_7rem] gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-val">Wartość</Label>
+                  <Input id="d-val" inputMode="decimal" type="number" min={0} value={valueText} onChange={(e) => setValueText(e.target.value)} />
+                  {errors["value"] && <p className="text-xs text-destructive">{errors["value"]}</p>}
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Waluta</Label>
+                  <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v as Currency })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label>Etap</Label>
-                <Select value={form.stage} onValueChange={(v) => setForm({ ...form, stage: v as Stage })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label>Etap</Label>
+                  <Select value={form.stage} onValueChange={(v) => setForm({ ...form, stage: v as Stage })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Typ aplikacji</Label>
+                  <Select value={form.app_type} onValueChange={(v) => setForm({ ...form, app_type: v as DealAppType })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{DEAL_APP_TYPES.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid gap-1.5">
-                <Label>Typ aplikacji</Label>
-                <Select value={form.app_type} onValueChange={(v) => setForm({ ...form, app_type: v as DealAppType })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{DEAL_APP_TYPES.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-[1fr_7rem] gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-val">Wartość</Label>
-                <Input id="d-val" inputMode="decimal" type="number" min={0} value={valueText} onChange={(e) => setValueText(e.target.value)} />
-                {errors["value"] && <p className="text-xs text-destructive">{errors["value"]}</p>}
-              </div>
-              <div className="grid gap-1.5">
-                <Label>Waluta</Label>
-                <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v as Currency })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-date">Przewidywana data zamknięcia</Label>
-                <Input id="d-date" type="date" value={form.expected_close_date} onChange={(e) => setForm({ ...form, expected_close_date: e.target.value })} />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="d-follow">Follow-up</Label>
-                <Input id="d-follow" type="date" value={form.followUpDate ?? ""} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label>Kraj</Label>
-                <Select value={form.country ?? "PL"} onValueChange={(v) => setForm({ ...form, country: v as Country })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c.id} value={c.id}>{c.flag} {c.label}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-date">Przewidywana data zamknięcia</Label>
+                  <Input id="d-date" type="date" value={form.expected_close_date} onChange={(e) => setForm({ ...form, expected_close_date: e.target.value })} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-follow">Follow-up</Label>
+                  <Input id="d-follow" type="date" value={form.followUpDate ?? ""} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} />
+                </div>
               </div>
               <div className="grid gap-1.5">
                 <Label>Priorytet</Label>
@@ -414,7 +450,53 @@ function Page() {
                   <SelectContent>{PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-            </div>
+            </section>
+
+            <section className="grid gap-3 rounded-lg border p-3">
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><Building2 className="h-4 w-4 text-primary" />Firma i Lokalizacja</h3>
+              <div className="grid grid-cols-[1fr_9rem] gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-company">Nazwa firmy *</Label>
+                  <Input id="d-company" list="d-company-list" maxLength={150} autoComplete="off" placeholder="Wybierz lub wpisz nową firmę" value={companyText} onChange={(e) => setCompanyText(e.target.value)} />
+                  <datalist id="d-company-list">{cs.companies.map((c) => <option key={c.id} value={c.name} />)}</datalist>
+                  {errors["company_id"] && <p className="text-xs text-destructive">{errors["company_id"]}</p>}
+                  {companyText.trim() && (
+                    <p className="text-xs text-muted-foreground">{matchedCompany ? "Istniejąca firma" : "Zostanie utworzona nowa firma"}</p>
+                  )}
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Kraj</Label>
+                  <Select value={form.country ?? "PL"} onValueChange={(v) => setForm({ ...form, country: v as Country })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c.id} value={c.id}>{c.flag} {c.id}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </section>
+
+            <section className="grid gap-3 rounded-lg border p-3">
+              <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground"><Phone className="h-4 w-4 text-primary" />Kontakt</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-cname">Imię i nazwisko</Label>
+                  <Input id="d-cname" list="d-contact-list" maxLength={120} autoComplete="off" placeholder={matchedCompany ? "Wybierz lub wpisz" : "np. Jan Kowalski"} value={ctName} onChange={(e) => onContactName(e.target.value)} />
+                  <datalist id="d-contact-list">{companyContacts.map((c) => <option key={c.id} value={`${c.first_name} ${c.last_name}`.trim()} />)}</datalist>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-crole">Stanowisko</Label>
+                  <Input id="d-crole" maxLength={100} placeholder="np. Dyrektor Produkcji" value={ctRole} onChange={(e) => setCtRole(e.target.value)} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-cphone">Telefon</Label>
+                  <Input id="d-cphone" type="tel" maxLength={40} placeholder="+48 600 000 000" value={ctPhone} onChange={(e) => setCtPhone(e.target.value)} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="d-cemail">Email</Label>
+                  <Input id="d-cemail" type="email" maxLength={255} placeholder="kontakt@firma.pl" value={ctEmail} onChange={(e) => setCtEmail(e.target.value)} />
+                  {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
+                </div>
+              </div>
+            </section>
             <div className="rounded-lg border">
               <button type="button" className="flex w-full items-center justify-between p-3 text-sm font-medium text-muted-foreground" onClick={() => setShowTech((v) => !v)} aria-expanded={showTech}>
                 Pokaż punktację i parametry techniczne
